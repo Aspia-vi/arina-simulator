@@ -21,13 +21,14 @@ function toggleTheme() {
 document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 applyTheme(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark');
 
-function goToSlide(id) {
-  document.querySelectorAll('.slide').forEach(s => s.classList.toggle('active', s.id === id));
-  document.querySelectorAll('.nav-link').forEach(b => b.classList.toggle('active', b.dataset.target === id));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+/* ========================================================================
+   НАВИГАЦИЯ МЕЖДУ ВКЛАДКАМИ (боковая панель 30% / контент 70%)
+   ======================================================================== */
+function goToView(id) {
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === id));
+  document.querySelectorAll('.side-tab').forEach(b => b.classList.toggle('active', b.dataset.target === id));
 }
-document.querySelectorAll('.nav-link').forEach(btn => btn.addEventListener('click', () => goToSlide(btn.dataset.target)));
-document.querySelectorAll('[data-nav]').forEach(btn => btn.addEventListener('click', () => goToSlide(btn.dataset.nav)));
+document.querySelectorAll('.side-tab').forEach(btn => btn.addEventListener('click', () => goToView(btn.dataset.target)));
 
 let currentScenarioKey = null;
 let currentFilter = 'all';
@@ -119,6 +120,9 @@ function showNodeDetail(scenarioKey, nodeId) {
 
 renderScenarioList();
 
+/* ========================================================================
+   КЕЙСЫ
+   ======================================================================== */
 let caseFilter = 'all';
 
 function renderCases() {
@@ -230,6 +234,9 @@ function updatePlayIcon(id, playing) {
 
 renderCases();
 
+/* ========================================================================
+   СИМУЛЯТОР
+   ======================================================================== */
 let talkScenarioKey = null;
 let talkCurrentNodeId = null;
 
@@ -360,6 +367,9 @@ document.getElementById('chat-input').addEventListener('keydown', (e) => { if (e
   recognition.addEventListener('error', () => { recording = false; micBtn.classList.remove('recording'); });
 })();
 
+/* ========================================================================
+   ФОНОВАЯ АНИМАЦИЯ
+   ======================================================================== */
 let pulseBoost = 0;
 const clickRipples = [];
 
