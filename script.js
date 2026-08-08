@@ -22,14 +22,45 @@ document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 applyTheme(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark');
 
 /* ========================================================================
-   НАВИГАЦИЯ МЕЖДУ ВКЛАДКАМИ (боковая панель 30% / контент 70%)
+   SCROLL-НАВИГАЦИЯ + АКТИВНЫЙ ПУНКТ МЕНЮ
    ======================================================================== */
-function goToView(id) {
-  document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === id));
-  document.querySelectorAll('.side-tab').forEach(b => b.classList.toggle('active', b.dataset.target === id));
-}
-document.querySelectorAll('.side-tab').forEach(btn => btn.addEventListener('click', () => goToView(btn.dataset.target)));
+document.querySelectorAll('[data-scroll]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const el = document.getElementById(btn.dataset.scroll);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  });
+});
 
+const navLinks = document.querySelectorAll('.nav-link');
+const observedSections = ['scenarios', 'cases', 'talk'].map(id => document.getElementById(id)).filter(Boolean);
+
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(link => link.classList.toggle('active', link.dataset.target === entry.target.id));
+    }
+  });
+}, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+
+observedSections.forEach(sec => navObserver.observe(sec));
+
+/* ========================================================================
+   МЕТРИКИ И "КАК ЭТО РАБОТАЕТ"
+   ======================================================================== */
+function renderMetrics() {
+  const grid = document.getElementById('metrics-grid');
+  grid.innerHTML = METRICS.map(m => `<div class="metric-card"><div class="metric-value">${m.value}</div><div class="metric-label">${m.label}</div></div>`).join('');
+}
+function renderHowItWorks() {
+  const grid = document.getElementById('how-grid');
+  grid.innerHTML = HOW_IT_WORKS.map(s => `<div class="how-card"><div class="how-num">${s.num}</div><h3>${s.title}</h3><p>${s.text}</p></div>`).join('');
+}
+renderMetrics();
+renderHowItWorks();
+
+/* ========================================================================
+   СЦЕНАРИИ
+   ======================================================================== */
 let currentScenarioKey = null;
 let currentFilter = 'all';
 
@@ -136,6 +167,7 @@ function renderCases() {
         <div><div class="case-card-title">${c.title}</div><div class="case-card-cat">${c.categoryLabel}</div></div>
         <div class="case-duration">${c.duration}</div>
       </div>
+      <div class="case-metric">${c.metric}</div>
       <div class="player" data-id="${c.id}">
         <button class="play-btn" data-id="${c.id}"><svg class="icon-play" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
         <div class="waveform" data-id="${c.id}">${bars}</div>
@@ -368,7 +400,7 @@ document.getElementById('chat-input').addEventListener('keydown', (e) => { if (e
 })();
 
 /* ========================================================================
-   ФОНОВАЯ АНИМАЦИЯ
+   ФОНОВАЯ АНИМАЦИЯ "ПРОВОДА / СВЯЗИ" + КОЛЬЦА-ИМПУЛЬСЫ
    ======================================================================== */
 let pulseBoost = 0;
 const clickRipples = [];

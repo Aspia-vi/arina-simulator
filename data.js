@@ -1,5 +1,42 @@
 // ===== ДАННЫЕ ДЕМО-КОНТЕНТА =====
 
+const METRICS = [
+  {
+    "value": "78%",
+    "label": "обращений автоматизируется без оператора"
+  },
+  {
+    "value": "+19%",
+    "label": "рост конверсии в целевое действие"
+  },
+  {
+    "value": "1.8 сек",
+    "label": "среднее время ответа робота"
+  },
+  {
+    "value": "×3.2",
+    "label": "снижение стоимости обработки звонка"
+  }
+];
+
+const HOW_IT_WORKS = [
+  {
+    "num": "01",
+    "title": "Выбор сценария",
+    "text": "Определяем задачу — продажи, активация или внедрение — и подбираем готовый шаблон диалога."
+  },
+  {
+    "num": "02",
+    "title": "Настройка логики",
+    "text": "Арина подстраивается под ваш скрипт: вопросы, возражения и переходы между репликами."
+  },
+  {
+    "num": "03",
+    "title": "Запуск и аналитика",
+    "text": "Робот обзванивает базу, а вы получаете расшифровки звонков и отчёт по результатам."
+  }
+];
+
 const SCENARIOS = {
   "sales-online-renewal": {
     "title": "Онлайн-продление",
@@ -198,6 +235,7 @@ const CASES = [
     "categoryLabel": "Продажи",
     "scenarioRef": "sales-online-renewal",
     "duration": "0:38",
+    "metric": "Конверсия в оплату 64%",
     "peaks": [
       0.218,
       0.343,
@@ -291,6 +329,7 @@ const CASES = [
     "categoryLabel": "Продажи",
     "scenarioRef": "sales-online-renewal",
     "duration": "0:45",
+    "metric": "Отработка возражения за 12 сек",
     "peaks": [
       0.514,
       0.675,
@@ -384,6 +423,7 @@ const CASES = [
     "categoryLabel": "Активация",
     "scenarioRef": "activation-service",
     "duration": "0:22",
+    "metric": "Экономия 22 сек на звонок",
     "peaks": [
       0.256,
       0.272,
@@ -451,6 +491,7 @@ const CASES = [
     "categoryLabel": "Внедрение",
     "scenarioRef": "implementation-ping",
     "duration": "0:29",
+    "metric": "Подтверждение данных за 1 звонок",
     "peaks": [
       0.255,
       0.112,
@@ -536,6 +577,7 @@ const CASES = [
     "categoryLabel": "Внедрение",
     "scenarioRef": "implementation-ping",
     "duration": "0:12",
+    "metric": "Автоматический повтор звонка",
     "peaks": [
       0.394,
       0.481,
