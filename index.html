@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Arina &middot; Голосовой робот для бизнеса</title>
+<title>Arina &middot; Голосовой робот</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -24,12 +24,9 @@
       <a href="#cases" class="nav-link" data-target="cases">Кейсы</a>
       <a href="#talk" class="nav-link" data-target="talk">Симулятор</a>
     </nav>
-    <div class="topbar-actions">
-      <button class="btn-primary btn-sm" data-scroll="talk">Попробовать</button>
-      <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
-        <svg id="theme-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"></svg>
-      </button>
-    </div>
+    <button class="theme-toggle" id="theme-toggle" title="Переключить тему" aria-label="Переключить тему">
+      <svg id="theme-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"></svg>
+    </button>
   </div>
 </header>
 
@@ -37,132 +34,150 @@
 
   <!-- ===== HERO ===== -->
   <section class="hero-section" id="hero">
-    <span class="hero-tag">Voice AI &middot; Демо-платформа</span>
     <h1>Голосовой робот<br><span class="accent-text">Арина</span></h1>
-    <p class="hero-subtitle">Арина обзванивает клиентов, ведёт диалог по сценарию и отрабатывает возражения — без участия оператора. Изучите логику робота на реальных примерах ниже.</p>
-    <div class="hero-actions">
-      <button class="btn-primary" data-scroll="scenarios">Смотреть сценарии</button>
-      <button class="btn-secondary" data-scroll="talk">Попробовать симулятор</button>
+    <p class="hero-subtitle">Внутренний инструмент для ознакомления с логикой работы голосового робота Арина: изучите сценарии диалогов, прослушайте примеры звонков и проверьте работу робота в интерактивном симуляторе.</p>
+  </section>
+
+  <!-- ===== ROADMAP ===== -->
+  <section class="section-block alt-bg">
+    <div class="section-inner">
+      <div class="section-heading">
+        <span class="section-label">Процесс</span>
+        <h2 class="section-title-big">Roadmap</h2>
+      </div>
+      <p class="section-lead">Как поставить задачу на разработку нового сценария для робота Арина.</p>
+      <div class="roadmap-grid">
+        <div class="roadmap-card">
+          <div class="roadmap-num">01</div>
+          <h3>Определяется задача по проблеме</h3>
+          <p>Сформулируйте задачу, которую должен решать голосовой робот: обзвон базы, информирование клиентов, сбор обратной связи, контроль данных или другой процесс.</p>
+        </div>
+        <div class="roadmap-card">
+          <div class="roadmap-num">02</div>
+          <h3>Заполняете бриф</h3>
+          <p>Передайте детали задачи в бриф — это поможет команде разработать сценарий, продумать логику диалога и настроить робота под ваш процесс.</p>
+          <a href="https://forms.kontur.ru/form/Arinabrif" target="_blank" rel="noopener noreferrer" class="btn-primary roadmap-link">Открыть бриф</a>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- ===== METRICS ===== -->
-  <section class="metrics-section">
-    <div class="metrics-grid" id="metrics-grid"></div>
-    <p class="metrics-note">* Иллюстративные показатели для демонстрации возможностей платформы</p>
-  </section>
-
-  <!-- ===== HOW IT WORKS ===== -->
-  <section class="how-section">
-    <h2 class="section-title centered">Как это работает</h2>
-    <div class="how-grid" id="how-grid"></div>
-  </section>
-
   <!-- ===== SCENARIOS ===== -->
-  <section class="content-section" id="scenarios">
-    <h2 class="section-title">Сценарии</h2>
-    <p class="section-lead">Каталог готовых диалогов по направлениям бизнеса — с визуальной схемой логики робота.</p>
-    <div class="scenarios-layout">
-      <aside class="scenario-list-panel">
-        <div class="filter-group" id="scenario-filters">
-          <button class="filter-chip active" data-filter="all">Все</button>
-          <button class="filter-chip" data-filter="sales">Продажи</button>
-          <button class="filter-chip" data-filter="activation">Активация</button>
-          <button class="filter-chip" data-filter="implementation">Внедрение</button>
-        </div>
-        <div id="scenario-list" class="scenario-list"></div>
-      </aside>
-      <div class="scenario-canvas-wrap">
-        <div class="scenario-canvas-header">
-          <div>
-            <h3 id="scenario-canvas-title">Выберите сценарий</h3>
-            <span class="scheme-type-badge" id="scenario-canvas-type"></span>
+  <section class="section-block" id="scenarios">
+    <div class="section-inner">
+      <div class="section-heading">
+        <span class="section-label">01</span>
+        <h2 class="section-title-big">Сценарии</h2>
+      </div>
+      <p class="section-lead">Каталог готовых диалогов по направлениям бизнеса — с визуальной схемой логики робота.</p>
+      <div class="scenarios-layout">
+        <aside class="scenario-list-panel">
+          <div class="filter-group" id="scenario-filters">
+            <button class="filter-chip active" data-filter="all">Все</button>
+            <button class="filter-chip" data-filter="sales">Продажи</button>
+            <button class="filter-chip" data-filter="activation">Активация</button>
+            <button class="filter-chip" data-filter="implementation">Внедрение</button>
           </div>
-          <p id="scenario-canvas-desc" class="scenario-canvas-desc"></p>
+          <div id="scenario-list" class="scenario-list"></div>
+        </aside>
+        <div class="scenario-canvas-wrap">
+          <div class="scenario-canvas-header">
+            <div>
+              <h3 id="scenario-canvas-title">Выберите сценарий</h3>
+              <span class="scheme-type-badge" id="scenario-canvas-type"></span>
+            </div>
+            <p id="scenario-canvas-desc" class="scenario-canvas-desc"></p>
+          </div>
+          <div class="scenario-canvas" id="scenario-canvas">
+            <div class="canvas-placeholder">Выберите сценарий слева, чтобы увидеть схему диалога</div>
+          </div>
+          <div class="scheme-node-detail" id="scheme-node-detail"></div>
         </div>
-        <div class="scenario-canvas" id="scenario-canvas">
-          <div class="canvas-placeholder">Выберите сценарий слева, чтобы увидеть схему диалога</div>
-        </div>
-        <div class="scheme-node-detail" id="scheme-node-detail"></div>
       </div>
     </div>
   </section>
 
   <!-- ===== CASES ===== -->
-  <section class="content-section" id="cases">
-    <h2 class="section-title">Кейсы</h2>
-    <p class="section-lead">Библиотека примеров звонков с проигрывателем, расшифровкой и метрикой результата.</p>
-    <div class="filter-group" id="case-filters">
-      <button class="filter-chip active" data-filter="all">Все</button>
-      <button class="filter-chip" data-filter="sales">Продажи</button>
-      <button class="filter-chip" data-filter="activation">Активация</button>
-      <button class="filter-chip" data-filter="implementation">Внедрение</button>
+  <section class="section-block alt-bg" id="cases">
+    <div class="section-inner">
+      <div class="section-heading">
+        <span class="section-label">02</span>
+        <h2 class="section-title-big">Кейсы</h2>
+      </div>
+      <p class="section-lead">Библиотека примеров звонков с проигрывателем и расшифровкой разговора.</p>
+      <div class="filter-group" id="case-filters">
+        <button class="filter-chip active" data-filter="all">Все</button>
+        <button class="filter-chip" data-filter="sales">Продажи</button>
+        <button class="filter-chip" data-filter="activation">Активация</button>
+        <button class="filter-chip" data-filter="implementation">Внедрение</button>
+      </div>
+      <div class="cases-grid" id="cases-grid"></div>
     </div>
-    <div class="cases-grid" id="cases-grid"></div>
   </section>
 
   <!-- ===== TALK / SIMULATOR ===== -->
-  <section class="content-section" id="talk">
-    <h2 class="section-title">Симулятор</h2>
-    <p class="section-lead">Выберите сценарий и пообщайтесь с роботом текстом или голосом — узнайте логику ответов изнутри.</p>
+  <section class="section-block" id="talk">
+    <div class="section-inner">
+      <div class="section-heading">
+        <span class="section-label">03</span>
+        <h2 class="section-title-big">Симулятор</h2>
+      </div>
+      <p class="section-lead">Выберите сценарий слева и пообщайтесь с роботом текстом или голосом — узнайте логику ответов изнутри.</p>
 
-    <div class="talk-setup" id="talk-setup">
-      <div class="talk-scenario-picker" id="talk-scenario-picker"></div>
-    </div>
+      <div class="talk-layout-v2">
+        <aside class="talk-scenario-col">
+          <h3 class="talk-col-title">Выбор сценария</h3>
+          <div id="talk-scenario-list" class="talk-scenario-list"></div>
+        </aside>
 
-    <div class="talk-layout" id="talk-layout" style="display:none">
-      <div class="talk-avatar-col">
-        <div class="robot-avatar" id="robot-avatar">
-          <div class="avatar-ring r1"></div>
-          <div class="avatar-ring r2"></div>
-          <div class="avatar-core">
-            <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="5" y="8" width="14" height="11" rx="3"/>
-              <circle cx="9.5" cy="13.5" r="1.4" fill="currentColor" stroke="none"/>
-              <circle cx="14.5" cy="13.5" r="1.4" fill="currentColor" stroke="none"/>
-              <path d="M12 8V4"/>
-              <circle cx="12" cy="3" r="1.2"/>
-              <path d="M8 19v1a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-1"/>
-            </svg>
+        <div class="talk-chat-panel">
+          <div class="talk-chat-header">
+            <div class="robot-avatar small" id="robot-avatar">
+              <div class="avatar-ring r1"></div>
+              <div class="avatar-core">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="8" width="14" height="11" rx="3"/>
+                  <circle cx="9.5" cy="13.5" r="1.4" fill="currentColor" stroke="none"/>
+                  <circle cx="14.5" cy="13.5" r="1.4" fill="currentColor" stroke="none"/>
+                  <path d="M12 8V4"/>
+                  <circle cx="12" cy="3" r="1.2"/>
+                </svg>
+              </div>
+            </div>
+            <div class="talk-chat-header-text">
+              <div class="talk-chat-title" id="talk-chat-title">Выберите сценарий слева</div>
+              <div class="talk-status" id="talk-status">Ожидание выбора</div>
+            </div>
           </div>
-        </div>
-        <div class="talk-status" id="talk-status">Готова к разговору</div>
-        <button class="btn-secondary talk-restart" id="talk-restart">Выбрать другой сценарий</button>
-      </div>
 
-      <div class="talk-chat-col">
-        <div class="chat-window" id="chat-window"></div>
-        <div class="quick-replies" id="quick-replies"></div>
-        <div class="chat-input-row">
-          <button class="mic-btn" id="mic-btn" title="Голосовой ввод" aria-label="Голосовой ввод">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-              <line x1="12" y1="19" x2="12" y2="23"/>
-              <line x1="8" y1="23" x2="16" y2="23"/>
-            </svg>
-          </button>
-          <input type="text" id="chat-input" placeholder="Напишите ответ клиента...">
-          <button class="btn-send" id="chat-send">
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
-          </button>
+          <div class="chat-window" id="chat-window">
+            <div class="chat-placeholder" id="chat-placeholder">Диалог появится здесь после выбора сценария</div>
+          </div>
+          <div class="quick-replies" id="quick-replies"></div>
+          <div class="chat-input-row">
+            <button class="mic-btn" id="mic-btn" title="Голосовой ввод" aria-label="Голосовой ввод" disabled>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+            </button>
+            <input type="text" id="chat-input" placeholder="Сначала выберите сценарий слева" disabled>
+            <button class="btn-send" id="chat-send" disabled>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
+          <div class="talk-note">Демо-режим: ответы робота воспроизводятся по заранее записанным репликам сценария.</div>
         </div>
-        <div class="talk-note">Демо-режим: ответы робота воспроизводятся по заранее записанным репликам сценария.</div>
       </div>
     </div>
-  </section>
-
-  <!-- ===== FINAL CTA ===== -->
-  <section class="cta-section">
-    <h2>Хотите так же для своего бизнеса?</h2>
-    <p>Соберём сценарий под вашу задачу и запустим тестовый обзвон за несколько дней.</p>
-    <button class="btn-primary" data-scroll="talk">Попробовать симулятор</button>
   </section>
 
 </main>
 
 <footer class="page-footer">
-  <p>Демонстрационный проект. Все звонки — постановочные примеры, созданные для демонстрации логики сценариев.</p>
+  <p>Внутренний демонстрационный инструмент. Все звонки — постановочные примеры для ознакомления с логикой сценариев.</p>
 </footer>
 
 <script src="data.js"></script>

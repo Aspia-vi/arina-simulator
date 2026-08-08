@@ -24,13 +24,6 @@ applyTheme(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark');
 /* ========================================================================
    SCROLL-НАВИГАЦИЯ + АКТИВНЫЙ ПУНКТ МЕНЮ
    ======================================================================== */
-document.querySelectorAll('[data-scroll]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const el = document.getElementById(btn.dataset.scroll);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  });
-});
-
 const navLinks = document.querySelectorAll('.nav-link');
 const observedSections = ['scenarios', 'cases', 'talk'].map(id => document.getElementById(id)).filter(Boolean);
 
@@ -43,20 +36,6 @@ const navObserver = new IntersectionObserver((entries) => {
 }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
 
 observedSections.forEach(sec => navObserver.observe(sec));
-
-/* ========================================================================
-   МЕТРИКИ И "КАК ЭТО РАБОТАЕТ"
-   ======================================================================== */
-function renderMetrics() {
-  const grid = document.getElementById('metrics-grid');
-  grid.innerHTML = METRICS.map(m => `<div class="metric-card"><div class="metric-value">${m.value}</div><div class="metric-label">${m.label}</div></div>`).join('');
-}
-function renderHowItWorks() {
-  const grid = document.getElementById('how-grid');
-  grid.innerHTML = HOW_IT_WORKS.map(s => `<div class="how-card"><div class="how-num">${s.num}</div><h3>${s.title}</h3><p>${s.text}</p></div>`).join('');
-}
-renderMetrics();
-renderHowItWorks();
 
 /* ========================================================================
    СЦЕНАРИИ
@@ -167,7 +146,6 @@ function renderCases() {
         <div><div class="case-card-title">${c.title}</div><div class="case-card-cat">${c.categoryLabel}</div></div>
         <div class="case-duration">${c.duration}</div>
       </div>
-      <div class="case-metric">${c.metric}</div>
       <div class="player" data-id="${c.id}">
         <button class="play-btn" data-id="${c.id}"><svg class="icon-play" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
         <div class="waveform" data-id="${c.id}">${bars}</div>
@@ -267,38 +245,45 @@ function updatePlayIcon(id, playing) {
 renderCases();
 
 /* ========================================================================
-   СИМУЛЯТОР
+   СИМУЛЯТОР (2 колонки: выбор сценария слева, диалог справа)
    ======================================================================== */
 let talkScenarioKey = null;
 let talkCurrentNodeId = null;
 
-function renderTalkPicker() {
-  const container = document.getElementById('talk-scenario-picker');
+function renderTalkScenarioList() {
+  const container = document.getElementById('talk-scenario-list');
   container.innerHTML = Object.keys(SCENARIOS).map(key => {
     const s = SCENARIOS[key];
-    return `<div class="talk-scenario-card" data-key="${key}"><h4>${s.title}</h4><p>${s.description}</p></div>`;
+    return `<div class="talk-scenario-item ${key === talkScenarioKey ? 'active' : ''}" data-key="${key}">
+      <h4>${s.title}</h4>
+      <p>${s.description}</p>
+    </div>`;
   }).join('');
-  container.querySelectorAll('.talk-scenario-card').forEach(el => el.addEventListener('click', () => startTalk(el.dataset.key)));
+  container.querySelectorAll('.talk-scenario-item').forEach(el => el.addEventListener('click', () => startTalk(el.dataset.key)));
 }
-renderTalkPicker();
+renderTalkScenarioList();
 
 function startTalk(key) {
   talkScenarioKey = key;
+  renderTalkScenarioList();
   const tree = DIALOG_TREES[key];
   talkCurrentNodeId = tree.start;
-  document.getElementById('talk-setup').style.display = 'none';
-  document.getElementById('talk-layout').style.display = 'grid';
+
+  document.getElementById('talk-chat-title').textContent = SCENARIOS[key].title;
   document.getElementById('chat-window').innerHTML = '';
   document.getElementById('talk-status').textContent = 'Идёт диалог...';
+
+  const input = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('chat-send');
+  input.disabled = false;
+  sendBtn.disabled = false;
+  input.placeholder = 'Напишите ответ клиента...';
+
+  const micBtn = document.getElementById('mic-btn');
+  if (!micBtn.classList.contains('unsupported')) micBtn.disabled = false;
+
   playRobotNode(talkCurrentNodeId);
 }
-
-document.getElementById('talk-restart').addEventListener('click', () => {
-  document.getElementById('talk-setup').style.display = 'block';
-  document.getElementById('talk-layout').style.display = 'none';
-  talkScenarioKey = null;
-  talkCurrentNodeId = null;
-});
 
 function addChatMsg(text, cls) {
   const win = document.getElementById('chat-window');
@@ -386,6 +371,7 @@ document.getElementById('chat-input').addEventListener('keydown', (e) => { if (e
   recognition.interimResults = false;
   let recording = false;
   micBtn.addEventListener('click', () => {
+    if (micBtn.disabled) return;
     if (recording) { recognition.stop(); return; }
     try { recognition.start(); recording = true; micBtn.classList.add('recording'); } catch (e) {}
   });
