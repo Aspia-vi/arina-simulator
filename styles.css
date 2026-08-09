@@ -5,7 +5,7 @@
   --input-bg: #12151f; --input-border: #2e3547; --tariff-bg: #161a26; --tariff-text: #aab0c2;
   --accent1: #35c2e0; --accent2: #4ee0a8; --danger: #e0596b; --wire-color: 53,194,224;
   --section-title: #d7dbe6; --shadow: 0 20px 60px -20px rgba(0,0,0,0.5); --nav-bg: rgba(18,21,31,0.75);
-  --alt-bg: rgba(27,31,46,0.35);
+  --alt-bg: rgba(27,31,46,0.35); --topbar-h: 68px; --canvas-dot: rgba(255,255,255,0.09); --canvas-bg-grid: #10131c;
 }
 html[data-theme="light"] {
   --bg: #f2f4f8; --bg-2: #e8ebf2; --text: #1c2030; --subtitle: #5b6178;
@@ -13,18 +13,24 @@ html[data-theme="light"] {
   --input-bg: #f7f8fb; --input-border: #cfd5e2; --tariff-bg: #eef1f7; --tariff-text: #4c5266;
   --accent1: #1f9fc0; --accent2: #2bb885; --danger: #c8455a; --wire-color: 31,159,192;
   --section-title: #1c2030; --shadow: 0 20px 60px -25px rgba(30,40,70,0.25); --nav-bg: rgba(242,244,248,0.75);
-  --alt-bg: rgba(219,224,234,0.35);
+  --alt-bg: rgba(219,224,234,0.35); --canvas-dot: rgba(30,40,70,0.12); --canvas-bg-grid: #f7f8fc;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+html { scroll-behavior: smooth; scroll-padding-top: var(--topbar-h); scroll-snap-type: y proximity; }
 html, body { margin: 0; padding: 0; }
 body { font-family: 'Manrope', 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; position: relative; min-height: 100vh; overflow-x: hidden; }
 #wires-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
 
+/* ===== SCROLL-SNAP СЕКЦИИ =====
+   Каждая секция занимает ровно высоту экрана за вычетом шапки — переход по навигации
+   показывает целиком нужную секцию, без "хвоста" следующей. */
+.snap-section { scroll-snap-align: start; min-height: calc(100vh - var(--topbar-h)); display: flex; flex-direction: column; justify-content: center; }
+#scenarios.snap-section, #cases.snap-section, #talk.snap-section { justify-content: flex-start; padding-top: 56px; }
+
 /* ===== TOP BAR ===== */
-.topbar { position: sticky; top: 0; z-index: 150; background: var(--nav-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); }
-.topbar-inner { max-width: 1400px; margin: 0 auto; padding: 14px 24px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; }
-.brand { display: flex; align-items: center; text-decoration: none; color: var(--text); justify-self: start; }
+.topbar { position: sticky; top: 0; z-index: 150; background: var(--nav-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--card-border); height: var(--topbar-h); }
+.topbar-inner { max-width: 1400px; margin: 0 auto; padding: 0 24px; height: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text); justify-self: start; font-weight: 800; font-size: 15px; letter-spacing: -0.01em; }
 .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(90deg, var(--accent1), var(--accent2)); flex-shrink: 0; }
 .topnav { display: flex; gap: 6px; justify-self: center; }
 .nav-link { color: var(--hint-text); font-size: 14px; font-weight: 700; text-decoration: none; padding: 10px 20px; border-radius: 10px; transition: color 0.2s, background 0.2s; }
@@ -38,15 +44,15 @@ body { font-family: 'Manrope', 'Segoe UI', Arial, sans-serif; background: var(--
 main { position: relative; z-index: 1; }
 
 /* ===== HERO ===== */
-.hero-section { max-width: 720px; margin: 0 auto; padding: 80px 24px 60px; text-align: center; }
+.hero-section { max-width: 720px; margin: 0 auto; padding: 24px 24px; text-align: center; }
 .hero-section h1 { font-family: 'Sora', 'Manrope', sans-serif; font-size: 42px; font-weight: 800; line-height: 1.18; margin: 0 0 20px; letter-spacing: -0.01em; }
 .accent-text { background: linear-gradient(90deg, var(--accent1), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hero-subtitle { color: var(--subtitle); font-size: 16px; line-height: 1.7; margin: 0; }
 
 /* ===== SECTION BLOCK ===== */
-.section-block { padding: 76px 24px; scroll-margin-top: 84px; border-top: 1px solid var(--card-border); }
+.section-block { padding: 0 24px 76px; border-top: 1px solid var(--card-border); }
 .section-block.alt-bg { background: var(--alt-bg); }
-.section-inner { max-width: 1400px; margin: 0 auto; }
+.section-inner { max-width: 1400px; margin: 0 auto; width: 100%; }
 
 .section-heading { display: flex; align-items: center; gap: 18px; margin-bottom: 14px; }
 .section-label {
@@ -66,7 +72,7 @@ main { position: relative; z-index: 1; }
 
 /* ===== SCENARIOS ===== */
 .scenarios-layout { display: grid; grid-template-columns: 260px 1fr; gap: 24px; align-items: start; }
-.scenario-list-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 18px; position: sticky; top: 100px; }
+.scenario-list-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 18px; position: sticky; top: calc(var(--topbar-h) + 16px); }
 .scenario-list { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
 .scenario-item { background: var(--tariff-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 13px 14px; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
 .scenario-item:hover { border-color: var(--accent1); transform: translateX(2px); }
@@ -85,12 +91,10 @@ main { position: relative; z-index: 1; }
 .scheme-type-badge { display: inline-block; margin-left: 10px; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; vertical-align: middle; background: var(--tariff-bg); color: var(--accent1); }
 .scenario-canvas-desc { color: var(--tariff-text); font-size: 13.5px; margin: 0; line-height: 1.6; }
 
-/* Окно схемы увеличено (~x1.5) для полной видимости сценариев */
-.scenario-canvas { background: var(--tariff-bg); border: 1px dashed var(--card-border); border-radius: 14px; padding: 20px; min-height: 560px; display: flex; align-items: center; justify-content: center; overflow-x: auto; }
+.scenario-canvas { background: var(--tariff-bg); border: 1px dashed var(--card-border); border-radius: 14px; padding: 20px; min-height: 480px; display: flex; align-items: center; justify-content: center; overflow-x: auto; }
 .canvas-placeholder { color: var(--hint-text); font-size: 13.5px; text-align: center; }
 .scenario-canvas svg { width: 100%; height: auto; min-width: 720px; }
 
-/* Прямоугольные узлы, компактные подписи */
 .scheme-node { cursor: pointer; }
 .scheme-node rect { fill: var(--card-bg); stroke: var(--accent1); stroke-width: 2; transition: fill 0.2s, stroke 0.2s; }
 .scheme-node.kind-final rect { stroke: var(--accent2); }
@@ -138,8 +142,10 @@ main { position: relative; z-index: 1; }
 .waveform .bar { flex: 1; background: var(--card-border); border-radius: 2px; min-width: 2px; transition: background 0.15s; }
 .waveform .bar.played { background: var(--accent1); }
 
-.transcript { display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; }
-.transcript-line { font-size: 12.5px; line-height: 1.5; padding: 7px 10px; border-radius: 8px; background: var(--tariff-bg); color: var(--tariff-text); transition: background 0.2s, color 0.2s; }
+/* Прогрессивное раскрытие транскрипта — без скролла, фразы всплывают по очереди */
+.transcript { display: flex; flex-direction: column; gap: 8px; }
+.transcript-line { font-size: 12.5px; line-height: 1.5; padding: 7px 10px; border-radius: 8px; background: var(--tariff-bg); color: var(--tariff-text); transition: background 0.2s, color 0.2s; opacity: 0; max-height: 0; overflow: hidden; padding-top: 0; padding-bottom: 0; margin: 0; transform: translateY(6px); transition: opacity 0.4s ease, transform 0.4s ease, background 0.2s, color 0.2s, max-height 0.4s ease, padding 0.4s ease, margin 0.4s ease; }
+.transcript-line.revealed { opacity: 1; max-height: 200px; padding-top: 7px; padding-bottom: 7px; margin: 0; transform: translateY(0); }
 .transcript-line.robot { border-left: 3px solid var(--accent1); }
 .transcript-line.client { border-left: 3px solid var(--accent2); }
 .transcript-line.system { border-left: 3px solid var(--danger); font-style: italic; }
@@ -166,6 +172,7 @@ main { position: relative; z-index: 1; }
 .breakdown-chip { display: inline-flex; align-items: center; gap: 7px; background: var(--tariff-bg); border: 1px solid var(--card-border); border-radius: 999px; padding: 7px 13px; font-size: 12px; color: var(--tariff-text); cursor: default; }
 .breakdown-chip .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .breakdown-chip b { color: var(--text); }
+.breakdown-chip.positive { border-color: rgba(78,224,168,0.4); background: rgba(78,224,168,0.08); }
 
 .campaign-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .campaign-table th { text-align: left; color: var(--hint-text); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--card-border); }
@@ -181,11 +188,12 @@ main { position: relative; z-index: 1; }
 .stub-card p { color: var(--tariff-text); font-size: 13.5px; line-height: 1.65; margin: 0; }
 
 /* ===== TALK / SIMULATOR: 3 columns ===== */
-.talk-layout-v3 { display: grid; grid-template-columns: 260px 1fr 420px; gap: 20px; align-items: start; }
+.talk-layout-v3 { display: grid; grid-template-columns: 260px 1fr 460px; gap: 20px; align-items: start; }
 
-.talk-scenario-col, .talk-scheme-col { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 18px; position: sticky; top: 100px; }
-.talk-col-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hint-text); font-weight: 700; margin: 0 0 14px; }
-.talk-scenario-list { display: flex; flex-direction: column; gap: 10px; }
+.talk-scenario-col { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 18px; position: sticky; top: calc(var(--topbar-h) + 16px); }
+.talk-scheme-col { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 18px; position: sticky; top: calc(var(--topbar-h) + 16px); }
+.talk-col-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hint-text); font-weight: 700; margin: 0; }
+.talk-scenario-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
 .talk-scenario-item { background: var(--tariff-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; cursor: pointer; transition: border-color 0.2s, transform 0.15s, background 0.2s; }
 .talk-scenario-item:hover { border-color: var(--accent1); transform: translateX(2px); }
 .talk-scenario-item.active { border-color: var(--accent1); background: rgba(var(--wire-color), 0.1); }
@@ -228,9 +236,29 @@ main { position: relative; z-index: 1; }
 
 .talk-note { font-size: 11.5px; color: var(--hint-text); text-align: center; }
 
-/* Схема диалога в симуляторе увеличена под ~x1.5 */
-.talk-live-scheme { background: var(--tariff-bg); border: 1px dashed var(--card-border); border-radius: 14px; padding: 16px; min-height: 460px; display: flex; align-items: center; justify-content: center; overflow: auto; }
-.talk-live-scheme svg { width: 100%; height: auto; min-width: 420px; }
+/* ===== ЖИВАЯ СХЕМА: canvas/Figma-стиль, точечный фон, пан/зум ===== */
+.talk-scheme-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.scheme-zoom-controls { display: flex; gap: 6px; }
+.zoom-btn { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--card-border); background: var(--tariff-bg); color: var(--text); font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; line-height: 1; }
+.zoom-btn:hover { border-color: var(--accent1); color: var(--accent1); }
+
+.talk-live-scheme {
+  position: relative;
+  background-color: var(--canvas-bg-grid);
+  background-image: radial-gradient(circle, var(--canvas-dot) 1.4px, transparent 1.4px);
+  background-size: 22px 22px;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  height: 620px;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+}
+.talk-live-scheme.dragging { cursor: grabbing; }
+.scheme-canvas-inner { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; display: flex; align-items: flex-start; justify-content: flex-start; padding: 40px; }
+.scheme-canvas-inner .canvas-placeholder { padding: 40px; color: var(--hint-text); }
+.scheme-canvas-inner svg { display: block; width: 520px; height: auto; }
+.scheme-hint { font-size: 11px; color: var(--hint-text); text-align: center; margin-top: 10px; }
 
 .page-footer { text-align: center; font-size: 12px; color: var(--hint-text); padding: 24px; position: relative; z-index: 1; border-top: 1px solid var(--card-border); }
 
@@ -238,9 +266,11 @@ main { position: relative; z-index: 1; }
 @media (max-width: 1320px) {
   .talk-layout-v3 { grid-template-columns: 240px 1fr; }
   .talk-scheme-col { grid-column: 1 / -1; position: static; }
-  .talk-live-scheme { min-height: 400px; }
+  .talk-live-scheme { height: 480px; }
 }
 @media (max-width: 980px) {
+  html { scroll-snap-type: none; }
+  .snap-section { min-height: auto; }
   .talk-layout-v3 { grid-template-columns: 1fr; }
   .talk-scenario-col, .talk-scheme-col { position: static; }
   .scenarios-layout { grid-template-columns: 1fr; }
@@ -255,7 +285,7 @@ main { position: relative; z-index: 1; }
 }
 @media (max-width: 600px) {
   .chat-msg { max-width: 90%; }
-  .section-block { padding: 50px 20px; }
+  .section-block { padding: 0 20px 50px; }
   .campaign-table { font-size: 12px; }
   .campaign-table th, .campaign-table td { padding: 8px 6px; }
 }

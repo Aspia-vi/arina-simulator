@@ -53,6 +53,7 @@ function buildSchemeSvg(scheme, opts) {
   const activeNodeId = opts.activeNodeId || null;
   const visitedNodeIds = opts.visitedNodeIds || [];
   const doneEdges = opts.doneEdges || [];
+  const vertical = opts.vertical || false;
   const nodeMap = {};
   scheme.nodes.forEach(n => nodeMap[n.id] = n);
 
@@ -60,10 +61,18 @@ function buildSchemeSvg(scheme, opts) {
   scheme.edges.forEach(([fromId, toId], i) => {
     const a = nodeMap[fromId], b = nodeMap[toId];
     if (!a || !b) return;
-    const ax = a.x + a.w, ay = a.y + a.h / 2;
-    const bx = b.x, by = b.y + b.h / 2;
-    const midX = (ax + bx) / 2;
-    const path = `M ${ax} ${ay} C ${midX} ${ay}, ${midX} ${by}, ${bx} ${by}`;
+    let path;
+    if (vertical) {
+      const ax = a.x + a.w / 2, ay = a.y + a.h;
+      const bx = b.x + b.w / 2, by = b.y;
+      const midY = (ay + by) / 2;
+      path = `M ${ax} ${ay} C ${ax} ${midY}, ${bx} ${midY}, ${bx} ${by}`;
+    } else {
+      const ax = a.x + a.w, ay = a.y + a.h / 2;
+      const bx = b.x, by = b.y + b.h / 2;
+      const midX = (ax + bx) / 2;
+      path = `M ${ax} ${ay} C ${midX} ${ay}, ${midX} ${by}, ${bx} ${by}`;
+    }
     const isDone = doneEdges.some(([df, dt]) => df === fromId && dt === toId);
     edgesSvg += `<path class="scheme-edge" d="${path}"/>`;
     edgesSvg += `<path class="scheme-edge-flow ${isDone ? 'done' : ''}" d="${path}" style="animation-delay:${(i * 0.15).toFixed(2)}s"/>`;
@@ -222,6 +231,7 @@ document.querySelectorAll('#case-filters .filter-chip').forEach(chip => {
 });
 
 const playbackState = {};
+const revealedLines = {};
 function parseDuration(str) { const [m, s] = str.split(':').map(Number); return m * 60 + s; }
 
 function togglePlayback(id) {
@@ -240,12 +250,17 @@ function startPlayback(id, c) {
   state.timer = setInterval(() => {
     state.progress += 0.1;
     renderProgress(id, state.progress / total, c);
-    highlightTranscript(id, state.progress, c);
+    revealTranscript(id, state.progress, c);
     if (state.progress >= total) stopPlayback(id);
   }, 100);
 }
 function pausePlayback(id) { const state = playbackState[id]; if (!state) return; state.playing = false; clearInterval(state.timer); updatePlayIcon(id, false); }
-function stopPlayback(id) { pausePlayback(id); const state = playbackState[id]; if (state) state.progress = 0; const c = CASES.find(x => x.id === id); if (c) { renderProgress(id, 0, c); highlightTranscript(id, 0, c); } }
+function stopPlayback(id) {
+  pausePlayback(id);
+  const state = playbackState[id]; if (state) state.progress = 0;
+  const c = CASES.find(x => x.id === id);
+  if (c) { renderProgress(id, 0, c); resetTranscript(id); }
+}
 function stopAllPlayback() { Object.keys(playbackState).forEach(id => stopPlayback(id)); }
 
 function seekCase(id, pct) {
@@ -256,7 +271,7 @@ function seekCase(id, pct) {
   state.progress = Math.max(0, Math.min(total, total * pct));
   playbackState[id] = state;
   renderProgress(id, state.progress / total, c);
-  highlightTranscript(id, state.progress, c);
+  revealTranscript(id, state.progress, c);
 }
 function renderProgress(id, ratio, c) {
   const wf = document.querySelector(`.waveform[data-id="${id}"]`);
@@ -265,14 +280,32 @@ function renderProgress(id, ratio, c) {
   const activeCount = Math.floor(bars.length * ratio);
   bars.forEach((b, i) => b.classList.toggle('played', i < activeCount));
 }
-function highlightTranscript(id, progressSec, c) {
+
+/* Прогрессивное раскрытие транскрипта: строки всплывают по очереди по мере "воспроизведения" */
+function revealTranscript(id, progressSec, c) {
   const container = document.querySelector(`.transcript[data-id="${id}"]`);
   if (!container) return;
   const lines = container.querySelectorAll('.transcript-line');
+  revealedLines[id] = revealedLines[id] || new Set();
   let activeIdx = -1;
-  c.transcript.forEach((t, i) => { if (progressSec >= t.t) activeIdx = i; });
+  c.transcript.forEach((t, i) => {
+    if (progressSec >= t.t) {
+      activeIdx = i;
+      if (!revealedLines[id].has(i)) {
+        revealedLines[id].add(i);
+        lines[i].classList.add('revealed');
+      }
+    }
+  });
   lines.forEach((l, i) => l.classList.toggle('active', i === activeIdx));
 }
+function resetTranscript(id) {
+  const container = document.querySelector(`.transcript[data-id="${id}"]`);
+  if (!container) return;
+  container.querySelectorAll('.transcript-line').forEach(l => { l.classList.remove('revealed'); l.classList.remove('active'); });
+  revealedLines[id] = new Set();
+}
+
 function updatePlayIcon(id, playing) {
   const btn = document.querySelector(`.play-btn[data-id="${id}"]`);
   if (!btn) return;
@@ -284,12 +317,17 @@ function updatePlayIcon(id, playing) {
 renderCases();
 
 /* ===== Campaign (ЛК-стиль) ===== */
+const POSITIVE_RESULTS = ['Перевод на оператора', 'Перезвонить', 'Согласие. Нужна помощь'];
+
 function renderCampaign() {
   const panel = document.getElementById('campaign-panel');
   const camp = CAMPAIGNS[0];
   if (!camp) { panel.innerHTML = ''; return; }
 
-  const breakdownChips = camp.breakdown.map(b => `<div class="breakdown-chip"><span class="chip-dot" style="background:${b.color}"></span>${b.label} <b>${b.count}</b></div>`).join('');
+  const breakdownChips = camp.breakdown.map(b => {
+    const positiveCls = POSITIVE_RESULTS.includes(b.label) ? 'positive' : '';
+    return `<div class="breakdown-chip ${positiveCls}"><span class="chip-dot" style="background:${b.color}"></span>${b.label} <b>${b.count}</b></div>`;
+  }).join('');
   const rows = camp.calls.map(c => `<tr>
       <td>${c.duration}</td>
       <td class="phone-cell">${c.phone}</td>
@@ -325,12 +363,15 @@ function renderCampaign() {
 }
 
 function resultColor(result) {
-  const map = { 'Автоответчик': '#f0a94e', 'Положили трубку': '#e0596b', 'Отказ': '#e0596b', 'Отказ. Помощь не нужна': '#e0596b' };
+  const map = {
+    'Автоответчик': '#f0a94e', 'Положили трубку': '#e0596b', 'Отказ': '#e0596b', 'Отказ. Помощь не нужна': '#e0596b',
+    'Перевод на оператора': '#4ee0a8', 'Перезвонить': '#4ee0a8', 'Согласие. Нужна помощь': '#4ee0a8'
+  };
   return map[result] || '#35c2e0';
 }
 
 /* ========================================================================
-   СИМУЛЯТОР (раздел 03): выбор сценария / чат-подсказки / живая схема
+   СИМУЛЯТОР (раздел 03): выбор сценария / чат-подсказки / живая схема (pan/zoom)
    ======================================================================== */
 let talkScenarioKey = null;
 let talkCurrentNodeId = null;
@@ -363,6 +404,7 @@ function startTalk(key) {
   document.getElementById('talk-status').textContent = 'Идёт диалог...';
   document.getElementById('talk-restart').disabled = false;
 
+  resetSchemeView();
   renderLiveScheme();
   playRobotNode(talkCurrentNodeId);
 }
@@ -464,14 +506,62 @@ function advanceDialog(nextNodeId, fromSchemeId) {
 }
 
 function renderLiveScheme() {
-  const container = document.getElementById('talk-live-scheme');
-  if (!talkScenarioKey) { container.innerHTML = '<div class="canvas-placeholder">Схема появится после выбора сценария</div>'; return; }
+  const inner = document.getElementById('scheme-canvas-inner');
+  if (!talkScenarioKey) { inner.innerHTML = '<div class="canvas-placeholder">Схема появится после выбора сценария</div>'; return; }
   const s = SCENARIOS[talkScenarioKey];
+  const scheme = s.schemeVertical || s.scheme;
   const currentNode = s.dialog.nodes[talkCurrentNodeId];
   const activeSchemeId = currentNode ? currentNode.schemeId : null;
   const visitedSchemeIds = talkVisitedNodes.map(id => s.dialog.nodes[id] && s.dialog.nodes[id].schemeId).filter(Boolean);
-  container.innerHTML = buildSchemeSvg(s.scheme, { activeNodeId: activeSchemeId, visitedNodeIds: visitedSchemeIds, doneEdges: talkDoneEdges });
+  inner.innerHTML = buildSchemeSvg(scheme, { activeNodeId: activeSchemeId, visitedNodeIds: visitedSchemeIds, doneEdges: talkDoneEdges, vertical: true });
 }
+
+/* ===== Pan & Zoom для живой схемы (canvas/Figma-стиль) ===== */
+(function initSchemePanZoom() {
+  const viewport = document.getElementById('talk-live-scheme');
+  const inner = document.getElementById('scheme-canvas-inner');
+  let scale = 1, panX = 20, panY = 20;
+  let isDragging = false, startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+
+  function applyTransform() {
+    inner.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  }
+
+  function resetView() { scale = 1; panX = 20; panY = 20; applyTransform(); }
+  window.resetSchemeView = resetView;
+
+  viewport.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX; startY = e.clientY;
+    startPanX = panX; startPanY = panY;
+    viewport.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    panX = startPanX + (e.clientX - startX);
+    panY = startPanY + (e.clientY - startY);
+    applyTransform();
+  });
+  window.addEventListener('mouseup', () => { isDragging = false; viewport.classList.remove('dragging'); });
+
+  viewport.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const rect = viewport.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newScale = Math.min(2.5, Math.max(0.4, scale * delta));
+    panX = mouseX - (mouseX - panX) * (newScale / scale);
+    panY = mouseY - (mouseY - panY) * (newScale / scale);
+    scale = newScale;
+    applyTransform();
+  }, { passive: false });
+
+  document.getElementById('scheme-zoom-in').addEventListener('click', () => { scale = Math.min(2.5, scale * 1.2); applyTransform(); });
+  document.getElementById('scheme-zoom-out').addEventListener('click', () => { scale = Math.max(0.4, scale * 0.8); applyTransform(); });
+  document.getElementById('scheme-zoom-reset').addEventListener('click', resetView);
+
+  applyTransform();
+})();
 
 /* ========================================================================
    ФОНОВАЯ АНИМАЦИЯ "ПРОВОДА / СВЯЗИ" + КОЛЬЦА-ИМПУЛЬСЫ

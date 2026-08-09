@@ -110,6 +110,87 @@ const SCENARIOS = {
         "greet_q"
       ]
     },
+    "schemeVertical": {
+      "viewBox": "0 0 1040 480",
+      "nodes": [
+        {
+          "id": "greet",
+          "x": 435,
+          "y": 20,
+          "w": 170,
+          "h": 64,
+          "label": "Приветствие",
+          "kind": "start"
+        },
+        {
+          "id": "greet_q",
+          "x": 380,
+          "y": 150,
+          "w": 280,
+          "h": 130,
+          "label": "Вопрос: планируете продлить?",
+          "kind": "robot"
+        },
+        {
+          "id": "yes_end",
+          "x": 20,
+          "y": 340,
+          "w": 220,
+          "h": 90,
+          "label": "Согласие — продолжает пользоваться",
+          "kind": "final"
+        },
+        {
+          "id": "no_end",
+          "x": 280,
+          "y": 340,
+          "w": 220,
+          "h": 90,
+          "label": "Отказ от сервиса",
+          "kind": "final"
+        },
+        {
+          "id": "not_me_end",
+          "x": 540,
+          "y": 340,
+          "w": 220,
+          "h": 90,
+          "label": "Не целевой контакт",
+          "kind": "final"
+        },
+        {
+          "id": "end_later",
+          "x": 800,
+          "y": 340,
+          "w": 220,
+          "h": 90,
+          "label": "Просьба перезвонить позже",
+          "kind": "final"
+        }
+      ],
+      "edges": [
+        [
+          "greet",
+          "greet_q"
+        ],
+        [
+          "greet_q",
+          "yes_end"
+        ],
+        [
+          "greet_q",
+          "no_end"
+        ],
+        [
+          "greet_q",
+          "not_me_end"
+        ],
+        [
+          "greet_q",
+          "end_later"
+        ]
+      ]
+    },
     "dialog": {
       "start": "greet",
       "nodes": {
@@ -186,6 +267,35 @@ const SCENARIOS = {
       ],
       "objectionsFrom": [
         "greet"
+      ]
+    },
+    "schemeVertical": {
+      "viewBox": "0 0 380 300",
+      "nodes": [
+        {
+          "id": "greet",
+          "x": 90,
+          "y": 20,
+          "w": 200,
+          "h": 80,
+          "label": "Информирование об активации",
+          "kind": "start"
+        },
+        {
+          "id": "end_ok",
+          "x": 90,
+          "y": 190,
+          "w": 200,
+          "h": 80,
+          "label": "Завершение звонка",
+          "kind": "final"
+        }
+      ],
+      "edges": [
+        [
+          "greet",
+          "end_ok"
+        ]
       ]
     },
     "dialog": {
@@ -288,6 +398,74 @@ const SCENARIOS = {
       ],
       "objectionsFrom": [
         "ask"
+      ]
+    },
+    "schemeVertical": {
+      "viewBox": "0 0 780 460",
+      "nodes": [
+        {
+          "id": "greet",
+          "x": 305,
+          "y": 20,
+          "w": 170,
+          "h": 64,
+          "label": "Приветствие",
+          "kind": "start"
+        },
+        {
+          "id": "ask",
+          "x": 260,
+          "y": 150,
+          "w": 260,
+          "h": 120,
+          "label": "Подтвердите email",
+          "kind": "robot"
+        },
+        {
+          "id": "confirm_end",
+          "x": 20,
+          "y": 330,
+          "w": 220,
+          "h": 90,
+          "label": "Email подтверждён",
+          "kind": "final"
+        },
+        {
+          "id": "change_end",
+          "x": 280,
+          "y": 330,
+          "w": 220,
+          "h": 90,
+          "label": "Нужно изменить email",
+          "kind": "final"
+        },
+        {
+          "id": "end_later",
+          "x": 540,
+          "y": 330,
+          "w": 220,
+          "h": 90,
+          "label": "Просьба перезвонить позже",
+          "kind": "final"
+        }
+      ],
+      "edges": [
+        [
+          "greet",
+          "ask"
+        ],
+        [
+          "ask",
+          "confirm_end"
+        ],
+        [
+          "ask",
+          "change_end"
+        ],
+        [
+          "ask",
+          "end_later"
+        ]
       ]
     },
     "dialog": {
@@ -744,7 +922,7 @@ const CAMPAIGNS = [
       {
         "label": "Перевод на оператора",
         "count": 111,
-        "color": "#35c2e0"
+        "color": "#4ee0a8"
       },
       {
         "label": "Не распознали",
@@ -759,7 +937,7 @@ const CAMPAIGNS = [
       {
         "label": "Перезвонить",
         "count": 26,
-        "color": "#35c2e0"
+        "color": "#4ee0a8"
       },
       {
         "label": "Отказ. Помощь не нужна",
@@ -814,6 +992,24 @@ const CAMPAIGNS = [
         "phone": "+7 919 •••••••",
         "date": "3 авг, 12:33",
         "result": "Автоответчик"
+      },
+      {
+        "duration": "01:12",
+        "phone": "+7 921 •••••••",
+        "date": "3 авг, 12:51",
+        "result": "Перевод на оператора"
+      },
+      {
+        "duration": "00:19",
+        "phone": "+7 917 •••••••",
+        "date": "3 авг, 12:55",
+        "result": "Перезвонить"
+      },
+      {
+        "duration": "01:34",
+        "phone": "+7 903 •••••••",
+        "date": "3 авг, 13:02",
+        "result": "Согласие. Нужна помощь"
       }
     ]
   }

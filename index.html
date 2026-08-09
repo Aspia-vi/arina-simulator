@@ -17,6 +17,7 @@
   <div class="topbar-inner">
     <a href="#hero" class="brand" aria-label="Наверх">
       <span class="brand-dot"></span>
+      <span>Арина</span>
     </a>
     <nav class="topnav" id="topnav">
       <a href="#scenarios" class="nav-link" data-target="scenarios">Сценарии</a>
@@ -32,13 +33,13 @@
 <main>
 
   <!-- ===== HERO ===== -->
-  <section class="hero-section" id="hero">
+  <section class="hero-section snap-section" id="hero">
     <h1>Голосовой робот<br><span class="accent-text">Арина</span></h1>
     <p class="hero-subtitle">Внутренний инструмент для ознакомления с логикой работы голосового робота Арина: изучите сценарии диалогов, прослушайте примеры звонков и проверьте работу робота в интерактивном симуляторе.</p>
   </section>
 
   <!-- ===== SCENARIOS ===== -->
-  <section class="section-block" id="scenarios">
+  <section class="section-block snap-section" id="scenarios">
     <div class="section-inner">
       <div class="section-heading">
         <span class="section-label">01</span>
@@ -79,7 +80,7 @@
   </section>
 
   <!-- ===== CASES ===== -->
-  <section class="section-block alt-bg" id="cases">
+  <section class="section-block alt-bg snap-section" id="cases">
     <div class="section-inner">
       <div class="section-heading">
         <span class="section-label">02</span>
@@ -122,7 +123,7 @@
   </section>
 
   <!-- ===== TALK / SIMULATOR ===== -->
-  <section class="section-block" id="talk">
+  <section class="section-block snap-section" id="talk">
     <div class="section-inner">
       <div class="section-heading">
         <span class="section-label">03</span>
@@ -169,10 +170,20 @@
         </div>
 
         <div class="talk-scheme-col">
-          <h3 class="talk-col-title">Схема диалога</h3>
-          <div class="talk-live-scheme" id="talk-live-scheme">
-            <div class="canvas-placeholder">Схема появится после выбора сценария</div>
+          <div class="talk-scheme-col-header">
+            <h3 class="talk-col-title">Схема диалога</h3>
+            <div class="scheme-zoom-controls">
+              <button class="zoom-btn" id="scheme-zoom-out" title="Уменьшить">−</button>
+              <button class="zoom-btn" id="scheme-zoom-reset" title="Сбросить">⤾</button>
+              <button class="zoom-btn" id="scheme-zoom-in" title="Увеличить">+</button>
+            </div>
           </div>
+          <div class="talk-live-scheme" id="talk-live-scheme">
+            <div class="scheme-canvas-inner" id="scheme-canvas-inner">
+              <div class="canvas-placeholder">Схема появится после выбора сценария</div>
+            </div>
+          </div>
+          <div class="scheme-hint">Перетаскивание: ЛКМ или Ctrl+ЛКМ &middot; Масштаб: колесо мыши</div>
         </div>
       </div>
     </div>
