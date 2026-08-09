@@ -44,34 +44,22 @@ main { position: relative; z-index: 1; }
 .accent-text { background: linear-gradient(90deg, var(--accent1), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hero-subtitle { color: var(--subtitle); font-size: 16px; line-height: 1.7; margin: 0; }
 
+/* ===== ИНДИКАТОР СКРОЛЛА: статичные стрелки, без анимации, тот же стиль/цвет/размер ===== */
 .scroll-indicator {
   position: fixed; right: 32px; bottom: 32px; z-index: 140;
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   background: var(--card-bg); border: 1px solid var(--card-border);
-  border-radius: 22px; padding: 16px 14px; box-shadow: var(--shadow);
+  border-radius: 22px; padding: 14px;
 }
 .scroll-indicator-btn {
   width: 40px; height: 40px; border-radius: 50%;
-  border: 1px solid var(--card-border); background: var(--tariff-bg); color: var(--hint-text);
+  border: 1px solid var(--card-border); background: var(--tariff-bg);
+  color: var(--accent1);
   display: flex; align-items: center; justify-content: center; cursor: pointer;
   transition: all 0.2s; flex-shrink: 0;
 }
-.scroll-indicator-btn:hover:not(:disabled) { border-color: var(--accent1); color: var(--accent1); transform: scale(1.08); }
-.scroll-indicator-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.scroll-indicator-btn.up svg { animation: arrowBounceUp 1.8s ease-in-out infinite; }
-.scroll-indicator-btn.down svg { animation: arrowBounceDown 1.8s ease-in-out infinite; }
-.scroll-indicator-btn:disabled svg { animation: none; }
-@keyframes arrowBounceDown { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
-@keyframes arrowBounceUp { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-
-.scroll-indicator-bars { display: flex; align-items: center; gap: 5px; height: 44px; }
-.bar-voice { width: 5px; border-radius: 4px; background: linear-gradient(180deg, var(--accent1), var(--accent2)); animation: voiceWave 1.15s ease-in-out infinite; }
-.bar-voice:nth-child(1) { height: 14px; animation-delay: 0s; }
-.bar-voice:nth-child(2) { height: 30px; animation-delay: 0.12s; }
-.bar-voice:nth-child(3) { height: 44px; animation-delay: 0.24s; }
-.bar-voice:nth-child(4) { height: 26px; animation-delay: 0.36s; }
-.bar-voice:nth-child(5) { height: 16px; animation-delay: 0.48s; }
-@keyframes voiceWave { 0%, 100% { transform: scaleY(0.4); opacity: 0.55; } 50% { transform: scaleY(1); opacity: 1; } }
+.scroll-indicator-btn:hover:not(:disabled) { border-color: var(--accent1); background: rgba(var(--wire-color), 0.1); transform: scale(1.08); }
+.scroll-indicator-btn:disabled { opacity: 0.3; cursor: not-allowed; color: var(--hint-text); }
 
 .section-block { padding: 0 24px 76px; border-top: 1px solid var(--card-border); }
 .section-block.alt-bg { background: var(--alt-bg); }
@@ -290,9 +278,8 @@ main { position: relative; z-index: 1; }
   .talk-scenario-col, .talk-scheme-col { position: static; }
   .scenarios-layout { grid-template-columns: 1fr; }
   .scenario-list-panel { position: static; }
-  .scroll-indicator { right: 16px; bottom: 16px; padding: 12px 10px; }
+  .scroll-indicator { right: 16px; bottom: 16px; padding: 10px; }
   .scroll-indicator-btn { width: 34px; height: 34px; }
-  .scroll-indicator-bars { height: 36px; }
 }
 @media (max-width: 760px) {
   .topnav { display: none; }
