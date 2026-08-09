@@ -22,23 +22,71 @@ document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 applyTheme(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark');
 
 /* ========================================================================
-   SCROLL-НАВИГАЦИЯ + АКТИВНЫЙ ПУНКТ МЕНЮ
+   SCROLL-НАВИГАЦИЯ
    ======================================================================== */
 const navLinks = document.querySelectorAll('.nav-link');
 const observedSections = ['scenarios', 'cases', 'talk'].map(id => document.getElementById(id)).filter(Boolean);
-
 const navObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      navLinks.forEach(link => link.classList.toggle('active', link.dataset.target === entry.target.id));
-    }
+    if (entry.isIntersecting) navLinks.forEach(link => link.classList.toggle('active', link.dataset.target === entry.target.id));
   });
 }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
-
 observedSections.forEach(sec => navObserver.observe(sec));
 
 /* ========================================================================
-   СЦЕНАРИИ
+   ОБЩИЙ РЕНДЕРИНГ SVG-СХЕМЫ (прямоугольные узлы)
+   ======================================================================== */
+function wrapText(label, cx, cy, maxChars) {
+  const words = label.split(' ');
+  const lines = []; let line = '';
+  words.forEach(w => {
+    if ((line + ' ' + w).trim().length > maxChars) { lines.push(line.trim()); line = w; }
+    else { line = (line + ' ' + w).trim(); }
+  });
+  if (line) lines.push(line);
+  const startY = cy - ((lines.length - 1) * 7) + 4;
+  return lines.map((l, i) => `<text x="${cx}" y="${startY + i * 14}">${l}</text>`).join('');
+}
+
+function buildSchemeSvg(scheme, opts) {
+  opts = opts || {};
+  const activeNodeId = opts.activeNodeId || null;
+  const visitedNodeIds = opts.visitedNodeIds || [];
+  const doneEdges = opts.doneEdges || [];
+  const nodeMap = {};
+  scheme.nodes.forEach(n => nodeMap[n.id] = n);
+
+  let edgesSvg = '';
+  scheme.edges.forEach(([fromId, toId], i) => {
+    const a = nodeMap[fromId], b = nodeMap[toId];
+    if (!a || !b) return;
+    const ax = a.x + a.w, ay = a.y + a.h / 2;
+    const bx = b.x, by = b.y + b.h / 2;
+    const midX = (ax + bx) / 2;
+    const path = `M ${ax} ${ay} C ${midX} ${ay}, ${midX} ${by}, ${bx} ${by}`;
+    const isDone = doneEdges.some(([df, dt]) => df === fromId && dt === toId);
+    edgesSvg += `<path class="scheme-edge" d="${path}"/>`;
+    edgesSvg += `<path class="scheme-edge-flow ${isDone ? 'done' : ''}" d="${path}" style="animation-delay:${(i * 0.15).toFixed(2)}s"/>`;
+  });
+
+  let nodesSvg = '';
+  scheme.nodes.forEach(n => {
+    const isActive = n.id === activeNodeId;
+    const isVisited = visitedNodeIds.includes(n.id);
+    const cls = ['scheme-node', `kind-${n.kind}`];
+    if (isActive) cls.push('active-live');
+    else if (isVisited) cls.push('selected');
+    nodesSvg += `<g class="${cls.join(' ')}" data-id="${n.id}">
+      <rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="14" ry="14"/>
+      ${wrapText(n.label, n.x + n.w / 2, n.y + n.h / 2, 20)}
+    </g>`;
+  });
+
+  return `<svg viewBox="${scheme.viewBox}" xmlns="http://www.w3.org/2000/svg">${edgesSvg}${nodesSvg}</svg>`;
+}
+
+/* ========================================================================
+   СЦЕНАРИИ (раздел 01)
    ======================================================================== */
 let currentScenarioKey = null;
 let currentFilter = 'all';
@@ -76,74 +124,68 @@ function selectScenario(key) {
   document.getElementById('scenario-canvas-type').textContent = s.typeLabel;
   document.getElementById('scenario-canvas-desc').textContent = s.description;
   document.getElementById('scheme-node-detail').classList.remove('show');
-  renderScheme(s.scheme, key);
-}
 
-function renderScheme(scheme, scenarioKey) {
   const canvas = document.getElementById('scenario-canvas');
-  const nodeMap = {};
-  scheme.nodes.forEach(n => nodeMap[n.id] = n);
-  let edgesSvg = '';
-  scheme.edges.forEach(([fromId, toId], i) => {
-    const a = nodeMap[fromId], b = nodeMap[toId];
-    if (!a || !b) return;
-    const midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2;
-    const path = `M ${a.x} ${a.y} Q ${midX} ${midY} ${b.x} ${b.y}`;
-    edgesSvg += `<path class="scheme-edge" d="${path}"/>`;
-    edgesSvg += `<path class="scheme-edge-flow" d="${path}" style="animation-delay:${(i * 0.15).toFixed(2)}s"/>`;
-  });
-  let nodesSvg = '';
-  scheme.nodes.forEach(n => {
-    const r = n.kind === 'start' ? 34 : 30;
-    nodesSvg += `<g class="scheme-node kind-${n.kind}" data-id="${n.id}"><circle cx="${n.x}" cy="${n.y}" r="${r}"/>${wrapText(n.label, n.x, n.y)}</g>`;
-  });
-  canvas.innerHTML = `<svg viewBox="${scheme.viewBox}" xmlns="http://www.w3.org/2000/svg">${edgesSvg}${nodesSvg}</svg>`;
+  canvas.innerHTML = buildSchemeSvg(s.scheme);
   canvas.querySelectorAll('.scheme-node').forEach(el => {
     el.addEventListener('click', () => {
       canvas.querySelectorAll('.scheme-node').forEach(x => x.classList.remove('selected'));
       el.classList.add('selected');
-      showNodeDetail(scenarioKey, el.dataset.id);
+      showNodeDetail(key, el.dataset.id);
     });
   });
+
+  renderObjections(s);
 }
 
-function wrapText(label, cx, cy) {
-  const words = label.split(' ');
-  const lines = []; let line = '';
-  words.forEach(w => {
-    if ((line + ' ' + w).trim().length > 14) { lines.push(line.trim()); line = w; }
-    else { line = (line + ' ' + w).trim(); }
-  });
-  if (line) lines.push(line);
-  const startY = cy - ((lines.length - 1) * 6);
-  return lines.map((l, i) => `<text x="${cx}" y="${startY + i * 12}">${l}</text>`).join('');
-}
-
-function showNodeDetail(scenarioKey, nodeId) {
-  const tree = DIALOG_TREES[scenarioKey];
-  const node = tree && tree.nodes[nodeId];
+function showNodeDetail(scenarioKey, schemeNodeId) {
+  const s = SCENARIOS[scenarioKey];
+  const dialogEntry = Object.values(s.dialog.nodes).find(n => n.schemeId === schemeNodeId);
   const detail = document.getElementById('scheme-node-detail');
-  if (!node) { detail.classList.remove('show'); return; }
-  detail.innerHTML = `<b>Реплика робота:</b> "${node.robot}"`;
+  if (!dialogEntry) { detail.classList.remove('show'); return; }
+  detail.innerHTML = `<b>Реплика робота:</b> "${dialogEntry.robot}"`;
   detail.classList.add('show');
 }
+
+function renderObjections(scenario) {
+  const wrap = document.getElementById('objections-wrap');
+  const grid = document.getElementById('objections-grid');
+  const keys = Object.keys(GLOBAL_OBJECTIONS);
+  if (!keys.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  grid.innerHTML = keys.map(q => `<div class="objection-card"><div class="objection-q">«${capitalize(q)}»</div><div class="objection-a">${GLOBAL_OBJECTIONS[q]}</div></div>`).join('');
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 renderScenarioList();
 
 /* ========================================================================
-   КЕЙСЫ
+   КЕЙСЫ (раздел 02): переключатель Аудио / Отчёт по обзвону
    ======================================================================== */
+document.querySelectorAll('#cases-view-toggle .view-toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#cases-view-toggle .view-toggle-btn').forEach(b => b.classList.toggle('active', b === btn));
+    const view = btn.dataset.view;
+    document.getElementById('cases-view-audio').style.display = view === 'audio' ? 'block' : 'none';
+    document.getElementById('cases-view-campaign').style.display = view === 'campaign' ? 'block' : 'none';
+    if (view === 'campaign') renderCampaign();
+    else stopAllPlayback();
+  });
+});
+
 let caseFilter = 'all';
 
 function renderCases() {
   const grid = document.getElementById('cases-grid');
   const list = CASES.filter(c => caseFilter === 'all' || c.category === caseFilter);
   grid.innerHTML = list.map(c => {
+    const color = CATEGORY_COLORS[c.category] || '#35c2e0';
     const bars = c.peaks.map((p, i) => `<div class="bar" data-idx="${i}" style="height:${Math.max(8, p * 100)}%"></div>`).join('');
     const transcript = c.transcript.map((t, i) => `<div class="transcript-line ${t.speaker}" data-idx="${i}" data-t="${t.t}"><b>${labelFor(t.speaker)}:</b> ${t.text}</div>`).join('');
-    return `<div class="case-card" data-id="${c.id}">
+    return `<div class="case-card" data-id="${c.id}" style="--cat-color:${color}">
       <div class="case-card-head">
-        <div><div class="case-card-title">${c.title}</div><div class="case-card-cat">${c.categoryLabel}</div></div>
+        <div><div class="case-card-title">${c.title}</div><div class="case-card-cat"><span class="cat-dot" style="background:${color}"></span>${c.categoryLabel}</div></div>
         <div class="case-duration">${c.duration}</div>
       </div>
       <div class="player" data-id="${c.id}">
@@ -187,7 +229,6 @@ function togglePlayback(id) {
   if (playbackState[id] && playbackState[id].playing) pausePlayback(id);
   else { stopAllPlayback(); startPlayback(id, c); }
 }
-
 function startPlayback(id, c) {
   const total = parseDuration(c.duration);
   const state = playbackState[id] || { progress: 0 };
@@ -216,7 +257,6 @@ function seekCase(id, pct) {
   renderProgress(id, state.progress / total, c);
   highlightTranscript(id, state.progress, c);
 }
-
 function renderProgress(id, ratio, c) {
   const wf = document.querySelector(`.waveform[data-id="${id}"]`);
   if (!wf) return;
@@ -224,7 +264,6 @@ function renderProgress(id, ratio, c) {
   const activeCount = Math.floor(bars.length * ratio);
   bars.forEach((b, i) => b.classList.toggle('played', i < activeCount));
 }
-
 function highlightTranscript(id, progressSec, c) {
   const container = document.querySelector(`.transcript[data-id="${id}"]`);
   if (!container) return;
@@ -233,7 +272,6 @@ function highlightTranscript(id, progressSec, c) {
   c.transcript.forEach((t, i) => { if (progressSec >= t.t) activeIdx = i; });
   lines.forEach((l, i) => l.classList.toggle('active', i === activeIdx));
 }
-
 function updatePlayIcon(id, playing) {
   const btn = document.querySelector(`.play-btn[data-id="${id}"]`);
   if (!btn) return;
@@ -244,11 +282,59 @@ function updatePlayIcon(id, playing) {
 
 renderCases();
 
+/* ===== Campaign (ЛК-стиль) ===== */
+function renderCampaign() {
+  const panel = document.getElementById('campaign-panel');
+  const camp = CAMPAIGNS[0];
+  if (!camp) { panel.innerHTML = ''; return; }
+
+  const breakdownChips = camp.breakdown.map(b => `<div class="breakdown-chip"><span class="chip-dot" style="background:${b.color}"></span>${b.label} <b>${b.count}</b></div>`).join('');
+  const rows = camp.calls.map(c => `<tr>
+      <td>${c.duration}</td>
+      <td class="phone-cell">${c.phone}</td>
+      <td>${c.date}</td>
+      <td><span class="result-tag" style="background:${resultColor(c.result)}22; color:${resultColor(c.result)}">${c.result}</span></td>
+    </tr>`).join('');
+
+  panel.innerHTML = `
+    <div class="campaign-card">
+      <div class="campaign-head">
+        <div>
+          <div class="campaign-date">${camp.date}</div>
+          <h3 class="campaign-name">${camp.name}</h3>
+          <div class="campaign-meta">
+            <span>Период: ${camp.period}</span>
+            <span>Автоперезвоны: ${camp.autoRetry}</span>
+          </div>
+        </div>
+        <div class="campaign-status">${camp.status} &nbsp;${camp.processed}/${camp.total}</div>
+      </div>
+      <div class="campaign-stats-row">
+        <div class="stat-pill"><div class="stat-pill-value success">${camp.dozvonilis}</div><div class="stat-pill-label">Дозвонились</div></div>
+        <div class="stat-pill"><div class="stat-pill-value danger">${camp.nedozvonilis}</div><div class="stat-pill-label">Не дозвонились</div></div>
+        <div class="stat-pill"><div class="stat-pill-value">${camp.ozhidayut}</div><div class="stat-pill-label">Ожидают звонка</div></div>
+      </div>
+      <div class="campaign-breakdown">${breakdownChips}</div>
+      <table class="campaign-table">
+        <thead><tr><th>Длительность</th><th>Телефон</th><th>Дата вызова</th><th>Результат</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function resultColor(result) {
+  const map = { 'Автоответчик': '#f0a94e', 'Положили трубку': '#e0596b', 'Отказ': '#e0596b', 'Отказ. Помощь не нужна': '#e0596b' };
+  return map[result] || '#35c2e0';
+}
+
 /* ========================================================================
-   СИМУЛЯТОР (2 колонки: выбор сценария слева, диалог справа)
+   СИМУЛЯТОР (раздел 03): выбор сценария / чат-подсказки / живая схема
    ======================================================================== */
 let talkScenarioKey = null;
 let talkCurrentNodeId = null;
+let talkVisitedNodes = [];
+let talkDoneEdges = [];
 
 function renderTalkScenarioList() {
   const container = document.getElementById('talk-scenario-list');
@@ -266,24 +352,23 @@ renderTalkScenarioList();
 function startTalk(key) {
   talkScenarioKey = key;
   renderTalkScenarioList();
-  const tree = DIALOG_TREES[key];
-  talkCurrentNodeId = tree.start;
+  const s = SCENARIOS[key];
+  talkCurrentNodeId = s.dialog.start;
+  talkVisitedNodes = [];
+  talkDoneEdges = [];
 
-  document.getElementById('talk-chat-title').textContent = SCENARIOS[key].title;
+  document.getElementById('talk-chat-title').textContent = s.title;
   document.getElementById('chat-window').innerHTML = '';
   document.getElementById('talk-status').textContent = 'Идёт диалог...';
+  document.getElementById('talk-restart').disabled = false;
 
-  const input = document.getElementById('chat-input');
-  const sendBtn = document.getElementById('chat-send');
-  input.disabled = false;
-  sendBtn.disabled = false;
-  input.placeholder = 'Напишите ответ клиента...';
-
-  const micBtn = document.getElementById('mic-btn');
-  if (!micBtn.classList.contains('unsupported')) micBtn.disabled = false;
-
+  renderLiveScheme();
   playRobotNode(talkCurrentNodeId);
 }
+
+document.getElementById('talk-restart').addEventListener('click', () => {
+  if (talkScenarioKey) startTalk(talkScenarioKey);
+});
 
 function addChatMsg(text, cls) {
   const win = document.getElementById('chat-window');
@@ -296,94 +381,96 @@ function addChatMsg(text, cls) {
 function addSystemMsg(text) { addChatMsg(text, 'system'); }
 
 function playRobotNode(nodeId) {
-  const tree = DIALOG_TREES[talkScenarioKey];
-  const node = tree.nodes[nodeId];
+  const s = SCENARIOS[talkScenarioKey];
+  const node = s.dialog.nodes[nodeId];
   if (!node) return;
+
+  if (!talkVisitedNodes.includes(nodeId)) talkVisitedNodes.push(nodeId);
+
   const avatar = document.getElementById('robot-avatar');
   avatar.classList.add('speaking');
   pulseBoost = 1;
   document.getElementById('talk-status').textContent = 'Арина говорит...';
+
   setTimeout(() => {
     addChatMsg(node.robot, 'robot');
     avatar.classList.remove('speaking');
+    renderLiveScheme();
+
     if (node.final) {
       document.getElementById('talk-status').textContent = 'Диалог завершён';
       addSystemMsg('— Звонок завершён —');
-      renderQuickReplies([]);
+      renderQuickReplies(true);
     } else {
       document.getElementById('talk-status').textContent = 'Ожидание ответа';
-      renderQuickReplies(node.quick || []);
+      renderQuickReplies(false);
     }
   }, 550);
 }
 
-function renderQuickReplies(quick) {
+function renderQuickReplies(disabledAll) {
   const container = document.getElementById('quick-replies');
-  container.innerHTML = quick.map(q => `<button class="quick-reply-btn" data-next="${q.next}">${q.label}</button>`).join('');
+  container.innerHTML = GLOBAL_ANSWERS.map(a => `<button class="quick-reply-btn" data-answer="${a}" ${disabledAll ? 'disabled' : ''}>${a}</button>`).join('');
+  if (disabledAll) return;
   container.querySelectorAll('.quick-reply-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      addChatMsg(btn.textContent, 'user');
-      advanceDialog(btn.dataset.next);
-    });
+    btn.addEventListener('click', () => handleAnswer(btn.dataset.answer));
   });
 }
 
-function advanceDialog(nextNodeId) { talkCurrentNodeId = nextNodeId; playRobotNode(nextNodeId); }
-
-function matchKeywords(userText, node) {
-  const lower = userText.toLowerCase();
-  for (const [nextId, words] of Object.entries(node.keywords || {})) {
-    for (const w of words) {
-      if (w === '.*') return nextId;
-      if (lower.includes(w)) return nextId;
-    }
-  }
-  return null;
-}
-
-function handleUserInput(text) {
-  if (!talkScenarioKey || !text.trim()) return;
-  const tree = DIALOG_TREES[talkScenarioKey];
-  const node = tree.nodes[talkCurrentNodeId];
+function handleAnswer(answer) {
+  const s = SCENARIOS[talkScenarioKey];
+  const node = s.dialog.nodes[talkCurrentNodeId];
   if (!node || node.final) return;
-  addChatMsg(text, 'user');
-  const nextId = matchKeywords(text, node);
-  if (nextId && tree.nodes[nextId]) advanceDialog(nextId);
-  else setTimeout(() => { addSystemMsg(FALLBACK_MSG); renderQuickReplies(node.quick || []); }, 300);
+
+  addChatMsg(answer, 'user');
+  const lower = answer.toLowerCase();
+
+  if (lower === 'повторите') {
+    setTimeout(() => addChatMsg(node.robot, 'robot'), 300);
+    return;
+  }
+  if (GLOBAL_OBJECTIONS[lower]) {
+    setTimeout(() => addChatMsg(GLOBAL_OBJECTIONS[lower], 'robot'), 300);
+    return;
+  }
+  if (lower === 'не звоните мне больше') {
+    advanceDialog(s.dialog.endings.notMe, node.schemeId);
+    return;
+  }
+  if (lower === 'перезвоните') {
+    advanceDialog(s.dialog.endings.callBack, node.schemeId);
+    return;
+  }
+  if (node.routes && node.routes[lower]) {
+    advanceDialog(node.routes[lower], node.schemeId);
+    return;
+  }
+
+  setTimeout(() => {
+    addSystemMsg('Этот ответ не предусмотрен в текущей ветке сценария. Попробуйте другой вариант.');
+    renderQuickReplies(false);
+  }, 300);
 }
 
-document.getElementById('chat-send').addEventListener('click', () => {
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  handleUserInput(text);
-});
-document.getElementById('chat-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('chat-send').click(); });
+function advanceDialog(nextNodeId, fromSchemeId) {
+  const s = SCENARIOS[talkScenarioKey];
+  const nextNode = s.dialog.nodes[nextNodeId];
+  if (fromSchemeId && nextNode && nextNode.schemeId) {
+    talkDoneEdges.push([fromSchemeId, nextNode.schemeId]);
+  }
+  talkCurrentNodeId = nextNodeId;
+  playRobotNode(nextNodeId);
+}
 
-(function initMic() {
-  const micBtn = document.getElementById('mic-btn');
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) { micBtn.classList.add('unsupported'); return; }
-  const recognition = new SpeechRecognition();
-  recognition.lang = 'ru-RU';
-  recognition.continuous = false;
-  recognition.interimResults = false;
-  let recording = false;
-  micBtn.addEventListener('click', () => {
-    if (micBtn.disabled) return;
-    if (recording) { recognition.stop(); return; }
-    try { recognition.start(); recording = true; micBtn.classList.add('recording'); } catch (e) {}
-  });
-  recognition.addEventListener('result', (e) => {
-    const text = e.results[0][0].transcript;
-    document.getElementById('chat-input').value = text;
-    handleUserInput(text);
-    document.getElementById('chat-input').value = '';
-  });
-  recognition.addEventListener('end', () => { recording = false; micBtn.classList.remove('recording'); });
-  recognition.addEventListener('error', () => { recording = false; micBtn.classList.remove('recording'); });
-})();
+function renderLiveScheme() {
+  const container = document.getElementById('talk-live-scheme');
+  if (!talkScenarioKey) { container.innerHTML = '<div class="canvas-placeholder">Схема появится после выбора сценария</div>'; return; }
+  const s = SCENARIOS[talkScenarioKey];
+  const currentNode = s.dialog.nodes[talkCurrentNodeId];
+  const activeSchemeId = currentNode ? currentNode.schemeId : null;
+  const visitedSchemeIds = talkVisitedNodes.map(id => s.dialog.nodes[id] && s.dialog.nodes[id].schemeId).filter(Boolean);
+  container.innerHTML = buildSchemeSvg(s.scheme, { activeNodeId: activeSchemeId, visitedNodeIds: visitedSchemeIds, doneEdges: talkDoneEdges });
+}
 
 /* ========================================================================
    ФОНОВАЯ АНИМАЦИЯ "ПРОВОДА / СВЯЗИ" + КОЛЬЦА-ИМПУЛЬСЫ
@@ -407,7 +494,6 @@ const clickRipples = [];
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     initNodes();
   }
-
   function initNodes() {
     const count = Math.max(26, Math.round((w * h) / 38000));
     nodes = [];
@@ -415,7 +501,6 @@ const clickRipples = [];
       nodes.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.16, vy: (Math.random() - 0.5) * 0.16, r: 1 + Math.random() * 1.5, phase: Math.random() * Math.PI * 2 });
     }
   }
-
   function getColor() { const style = getComputedStyle(document.documentElement); return style.getPropertyValue('--wire-color').trim() || '53,194,224'; }
 
   const MAX_DIST = 170;
@@ -437,7 +522,6 @@ const clickRipples = [];
       if (n.y < -20) n.y = h + 20;
       if (n.y > h + 20) n.y = -20;
     }
-
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
         const a = nodes[i], b = nodes[j];
@@ -453,13 +537,11 @@ const clickRipples = [];
         }
       }
     }
-
     for (const n of nodes) {
       const glow = 0.35 + 0.3 * Math.sin(t * 1.5 + n.phase);
       ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${color},${(glow + pulseBoost * 0.3).toFixed(3)})`; ctx.fill();
     }
-
     for (let i = clickRipples.length - 1; i >= 0; i--) {
       const r = clickRipples[i];
       r.radius += 3.2; r.alpha *= 0.955;
@@ -467,7 +549,6 @@ const clickRipples = [];
       ctx.beginPath(); ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(${color},${r.alpha.toFixed(3)})`; ctx.lineWidth = 2; ctx.stroke();
     }
-
     rafId = requestAnimationFrame(step);
   }
 
