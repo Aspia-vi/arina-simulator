@@ -22,16 +22,18 @@ document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 applyTheme(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark');
 
 /* ========================================================================
-   SCROLL-НАВИГАЦИЯ + ИНДИКАТОР СКРОЛЛА В HERO
+   SCROLL-НАВИГАЦИЯ + ГЛОБАЛЬНЫЙ ИНДИКАТОР (вверх/вниз по секциям)
    ======================================================================== */
+const SECTION_IDS = ['hero', 'scenarios', 'cases', 'talk'];
+const sectionEls = SECTION_IDS.map(id => document.getElementById(id)).filter(Boolean);
 const navLinks = document.querySelectorAll('.nav-link');
-const observedSections = ['scenarios', 'cases', 'talk'].map(id => document.getElementById(id)).filter(Boolean);
+
 const navObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) navLinks.forEach(link => link.classList.toggle('active', link.dataset.target === entry.target.id));
   });
 }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
-observedSections.forEach(sec => navObserver.observe(sec));
+sectionEls.filter(s => s.id !== 'hero').forEach(sec => navObserver.observe(sec));
 
 document.querySelectorAll('[data-scroll]').forEach(el => {
   el.addEventListener('click', () => {
@@ -39,6 +41,37 @@ document.querySelectorAll('[data-scroll]').forEach(el => {
     if (target) target.scrollIntoView({ behavior: 'smooth' });
   });
 });
+
+function getCurrentSectionIndex() {
+  const scrollPos = window.scrollY + window.innerHeight / 2;
+  let idx = 0;
+  sectionEls.forEach((sec, i) => {
+    if (sec.offsetTop <= scrollPos) idx = i;
+  });
+  return idx;
+}
+
+const scrollUpBtn = document.getElementById('scroll-up-btn');
+const scrollDownBtn = document.getElementById('scroll-down-btn');
+
+function updateScrollIndicatorState() {
+  const idx = getCurrentSectionIndex();
+  scrollUpBtn.disabled = idx <= 0;
+  scrollDownBtn.disabled = idx >= sectionEls.length - 1;
+}
+
+scrollUpBtn.addEventListener('click', () => {
+  const idx = getCurrentSectionIndex();
+  if (idx > 0) sectionEls[idx - 1].scrollIntoView({ behavior: 'smooth' });
+});
+scrollDownBtn.addEventListener('click', () => {
+  const idx = getCurrentSectionIndex();
+  if (idx < sectionEls.length - 1) sectionEls[idx + 1].scrollIntoView({ behavior: 'smooth' });
+});
+
+window.addEventListener('scroll', updateScrollIndicatorState);
+window.addEventListener('resize', updateScrollIndicatorState);
+updateScrollIndicatorState();
 
 /* ========================================================================
    ОБЩИЙ РЕНДЕРИНГ SVG-СХЕМЫ (прямоугольные узлы)
@@ -102,10 +135,65 @@ function buildSchemeSvg(scheme, opts) {
 }
 
 /* ========================================================================
-   СЦЕНАРИИ (раздел 01)
+   УНИВЕРСАЛЬНЫЙ PAN & ZOOM (canvas/Figma-стиль) — используется и для
+   схемы в разделе "Сценарии", и для живой схемы в "Симуляторе"
+   ======================================================================== */
+function createPanZoom(viewportEl, innerEl, zoomInBtn, zoomOutBtn, zoomResetBtn) {
+  let scale = 1, panX = 20, panY = 20;
+  let isDragging = false, startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+
+  function applyTransform() {
+    innerEl.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  }
+  function resetView() { scale = 1; panX = 20; panY = 20; applyTransform(); }
+
+  viewportEl.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX; startY = e.clientY;
+    startPanX = panX; startPanY = panY;
+    viewportEl.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    panX = startPanX + (e.clientX - startX);
+    panY = startPanY + (e.clientY - startY);
+    applyTransform();
+  });
+  window.addEventListener('mouseup', () => { isDragging = false; viewportEl.classList.remove('dragging'); });
+
+  viewportEl.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const rect = viewportEl.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newScale = Math.min(2.5, Math.max(0.4, scale * delta));
+    panX = mouseX - (mouseX - panX) * (newScale / scale);
+    panY = mouseY - (mouseY - panY) * (newScale / scale);
+    scale = newScale;
+    applyTransform();
+  }, { passive: false });
+
+  zoomInBtn.addEventListener('click', () => { scale = Math.min(2.5, scale * 1.2); applyTransform(); });
+  zoomOutBtn.addEventListener('click', () => { scale = Math.max(0.4, scale * 0.8); applyTransform(); });
+  zoomResetBtn.addEventListener('click', resetView);
+
+  applyTransform();
+  return { resetView, applyTransform };
+}
+
+/* ========================================================================
+   СЦЕНАРИИ (раздел 01) — теперь со своим canvas/pan-zoom
    ======================================================================== */
 let currentScenarioKey = null;
 let currentFilter = 'all';
+
+const scenarioPanZoom = createPanZoom(
+  document.getElementById('scenario-canvas'),
+  document.getElementById('scenario-canvas-inner'),
+  document.getElementById('scenario-zoom-in'),
+  document.getElementById('scenario-zoom-out'),
+  document.getElementById('scenario-zoom-reset')
+);
 
 function renderScenarioList() {
   const container = document.getElementById('scenario-list');
@@ -141,11 +229,13 @@ function selectScenario(key) {
   document.getElementById('scenario-canvas-desc').textContent = s.description;
   document.getElementById('scheme-node-detail').classList.remove('show');
 
-  const canvas = document.getElementById('scenario-canvas');
-  canvas.innerHTML = buildSchemeSvg(s.scheme);
-  canvas.querySelectorAll('.scheme-node').forEach(el => {
+  const inner = document.getElementById('scenario-canvas-inner');
+  inner.innerHTML = buildSchemeSvg(s.scheme);
+  scenarioPanZoom.resetView();
+
+  inner.querySelectorAll('.scheme-node').forEach(el => {
     el.addEventListener('click', () => {
-      canvas.querySelectorAll('.scheme-node').forEach(x => x.classList.remove('selected'));
+      inner.querySelectorAll('.scheme-node').forEach(x => x.classList.remove('selected'));
       el.classList.add('selected');
       showNodeDetail(key, el.dataset.id);
     });
@@ -384,6 +474,14 @@ let talkCurrentNodeId = null;
 let talkVisitedNodes = [];
 let talkDoneEdges = [];
 
+const talkPanZoom = createPanZoom(
+  document.getElementById('talk-live-scheme'),
+  document.getElementById('scheme-canvas-inner'),
+  document.getElementById('scheme-zoom-in'),
+  document.getElementById('scheme-zoom-out'),
+  document.getElementById('scheme-zoom-reset')
+);
+
 function renderTalkScenarioList() {
   const container = document.getElementById('talk-scenario-list');
   container.innerHTML = Object.keys(SCENARIOS).map(key => {
@@ -410,7 +508,7 @@ function startTalk(key) {
   document.getElementById('talk-status').textContent = 'Идёт диалог...';
   document.getElementById('talk-restart').disabled = false;
 
-  if (window.resetSchemeView) window.resetSchemeView();
+  talkPanZoom.resetView();
   renderLiveScheme();
   playRobotNode(talkCurrentNodeId);
 }
@@ -521,53 +619,6 @@ function renderLiveScheme() {
   const visitedSchemeIds = talkVisitedNodes.map(id => s.dialog.nodes[id] && s.dialog.nodes[id].schemeId).filter(Boolean);
   inner.innerHTML = buildSchemeSvg(scheme, { activeNodeId: activeSchemeId, visitedNodeIds: visitedSchemeIds, doneEdges: talkDoneEdges, vertical: true });
 }
-
-/* ===== Pan & Zoom для живой схемы (canvas/Figma-стиль) ===== */
-(function initSchemePanZoom() {
-  const viewport = document.getElementById('talk-live-scheme');
-  const inner = document.getElementById('scheme-canvas-inner');
-  let scale = 1, panX = 20, panY = 20;
-  let isDragging = false, startX = 0, startY = 0, startPanX = 0, startPanY = 0;
-
-  function applyTransform() {
-    inner.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
-  }
-
-  function resetView() { scale = 1; panX = 20; panY = 20; applyTransform(); }
-  window.resetSchemeView = resetView;
-
-  viewport.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    startX = e.clientX; startY = e.clientY;
-    startPanX = panX; startPanY = panY;
-    viewport.classList.add('dragging');
-  });
-  window.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    panX = startPanX + (e.clientX - startX);
-    panY = startPanY + (e.clientY - startY);
-    applyTransform();
-  });
-  window.addEventListener('mouseup', () => { isDragging = false; viewport.classList.remove('dragging'); });
-
-  viewport.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    const rect = viewport.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newScale = Math.min(2.5, Math.max(0.4, scale * delta));
-    panX = mouseX - (mouseX - panX) * (newScale / scale);
-    panY = mouseY - (mouseY - panY) * (newScale / scale);
-    scale = newScale;
-    applyTransform();
-  }, { passive: false });
-
-  document.getElementById('scheme-zoom-in').addEventListener('click', () => { scale = Math.min(2.5, scale * 1.2); applyTransform(); });
-  document.getElementById('scheme-zoom-out').addEventListener('click', () => { scale = Math.max(0.4, scale * 0.8); applyTransform(); });
-  document.getElementById('scheme-zoom-reset').addEventListener('click', resetView);
-
-  applyTransform();
-})();
 
 /* ========================================================================
    ФОНОВАЯ АНИМАЦИЯ "ПРОВОДА / СВЯЗИ" + КОЛЬЦА-ИМПУЛЬСЫ

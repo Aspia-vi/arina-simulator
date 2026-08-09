@@ -30,25 +30,29 @@
   </div>
 </header>
 
+<!-- ===== ГЛОБАЛЬНЫЙ ИНДИКАТОР СКРОЛЛА (фиксированный, справа снизу) ===== -->
+<div class="scroll-indicator" id="scroll-indicator">
+  <button class="scroll-indicator-btn up" id="scroll-up-btn" aria-label="Прокрутить вверх" title="Прокрутить вверх">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+  </button>
+  <span class="scroll-indicator-bars">
+    <span class="bar-voice"></span>
+    <span class="bar-voice"></span>
+    <span class="bar-voice"></span>
+    <span class="bar-voice"></span>
+    <span class="bar-voice"></span>
+  </span>
+  <button class="scroll-indicator-btn down" id="scroll-down-btn" aria-label="Прокрутить вниз" title="Прокрутить вниз">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+</div>
+
 <main>
 
   <!-- ===== HERO ===== -->
   <section class="hero-section snap-section" id="hero">
     <h1>Голосовой робот<br><span class="accent-text">Арина</span></h1>
     <p class="hero-subtitle">Внутренний инструмент для ознакомления с логикой работы голосового робота Арина: изучите сценарии диалогов, прослушайте примеры звонков и проверьте работу робота в интерактивном симуляторе.</p>
-
-    <button class="scroll-indicator" id="scroll-indicator" data-scroll="scenarios" aria-label="Перейти к разделу Сценарии" title="Перейти к разделу Сценарии">
-      <span class="scroll-indicator-bars">
-        <span class="bar-voice"></span>
-        <span class="bar-voice"></span>
-        <span class="bar-voice"></span>
-        <span class="bar-voice"></span>
-        <span class="bar-voice"></span>
-      </span>
-      <svg class="scroll-indicator-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6 9l6 6 6-6"/>
-      </svg>
-    </button>
   </section>
 
   <!-- ===== SCENARIOS ===== -->
@@ -77,10 +81,18 @@
                 <span class="scheme-type-badge" id="scenario-canvas-type"></span>
               </div>
               <p id="scenario-canvas-desc" class="scenario-canvas-desc"></p>
+              <div class="scheme-zoom-controls">
+                <button class="zoom-btn" id="scenario-zoom-out" title="Уменьшить">−</button>
+                <button class="zoom-btn" id="scenario-zoom-reset" title="Сбросить">⤾</button>
+                <button class="zoom-btn" id="scenario-zoom-in" title="Увеличить">+</button>
+              </div>
             </div>
             <div class="scenario-canvas" id="scenario-canvas">
-              <div class="canvas-placeholder">Выберите сценарий слева, чтобы увидеть схему диалога</div>
+              <div class="scenario-canvas-inner" id="scenario-canvas-inner">
+                <div class="canvas-placeholder">Выберите сценарий слева, чтобы увидеть схему диалога</div>
+              </div>
             </div>
+            <div class="scheme-hint">Перетаскивание: ЛКМ или Ctrl+ЛКМ &middot; Масштаб: колесо мыши</div>
             <div class="scheme-node-detail" id="scheme-node-detail"></div>
           </div>
           <div class="objections-wrap" id="objections-wrap" style="display:none">
