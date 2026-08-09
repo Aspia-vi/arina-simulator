@@ -45,9 +45,7 @@ document.querySelectorAll('[data-scroll]').forEach(el => {
 function getCurrentSectionIndex() {
   const scrollPos = window.scrollY + window.innerHeight / 2;
   let idx = 0;
-  sectionEls.forEach((sec, i) => {
-    if (sec.offsetTop <= scrollPos) idx = i;
-  });
+  sectionEls.forEach((sec, i) => { if (sec.offsetTop <= scrollPos) idx = i; });
   return idx;
 }
 
@@ -135,8 +133,7 @@ function buildSchemeSvg(scheme, opts) {
 }
 
 /* ========================================================================
-   УНИВЕРСАЛЬНЫЙ PAN & ZOOM (canvas/Figma-стиль) — используется и для
-   схемы в разделе "Сценарии", и для живой схемы в "Симуляторе"
+   УНИВЕРСАЛЬНЫЙ PAN & ZOOM (canvas/Figma-стиль)
    ======================================================================== */
 function createPanZoom(viewportEl, innerEl, zoomInBtn, zoomOutBtn, zoomResetBtn) {
   let scale = 1, panX = 20, panY = 20;
@@ -182,7 +179,7 @@ function createPanZoom(viewportEl, innerEl, zoomInBtn, zoomOutBtn, zoomResetBtn)
 }
 
 /* ========================================================================
-   СЦЕНАРИИ (раздел 01) — теперь со своим canvas/pan-zoom
+   СЦЕНАРИИ (раздел 01)
    ======================================================================== */
 let currentScenarioKey = null;
 let currentFilter = 'all';

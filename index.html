@@ -30,7 +30,6 @@
   </div>
 </header>
 
-<!-- ===== ГЛОБАЛЬНЫЙ ИНДИКАТОР СКРОЛЛА (фиксированный, справа снизу) ===== -->
 <div class="scroll-indicator" id="scroll-indicator">
   <button class="scroll-indicator-btn up" id="scroll-up-btn" aria-label="Прокрутить вверх" title="Прокрутить вверх">
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
@@ -49,13 +48,11 @@
 
 <main>
 
-  <!-- ===== HERO ===== -->
   <section class="hero-section snap-section" id="hero">
     <h1>Голосовой робот<br><span class="accent-text">Арина</span></h1>
     <p class="hero-subtitle">Внутренний инструмент для ознакомления с логикой работы голосового робота Арина: изучите сценарии диалогов, прослушайте примеры звонков и проверьте работу робота в интерактивном симуляторе.</p>
   </section>
 
-  <!-- ===== SCENARIOS ===== -->
   <section class="section-block snap-section" id="scenarios">
     <div class="section-inner">
       <div class="section-heading">
@@ -79,8 +76,8 @@
               <div>
                 <h3 id="scenario-canvas-title">Выберите сценарий</h3>
                 <span class="scheme-type-badge" id="scenario-canvas-type"></span>
+                <p id="scenario-canvas-desc" class="scenario-canvas-desc"></p>
               </div>
-              <p id="scenario-canvas-desc" class="scenario-canvas-desc"></p>
               <div class="scheme-zoom-controls">
                 <button class="zoom-btn" id="scenario-zoom-out" title="Уменьшить">−</button>
                 <button class="zoom-btn" id="scenario-zoom-reset" title="Сбросить">⤾</button>
@@ -104,7 +101,6 @@
     </div>
   </section>
 
-  <!-- ===== CASES ===== -->
   <section class="section-block alt-bg snap-section" id="cases">
     <div class="section-inner">
       <div class="section-heading">
@@ -147,7 +143,6 @@
     </div>
   </section>
 
-  <!-- ===== TALK / SIMULATOR ===== -->
   <section class="section-block snap-section" id="talk">
     <div class="section-inner">
       <div class="section-heading">
