@@ -22,7 +22,7 @@ document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 applyTheme(localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark');
 
 /* ========================================================================
-   SCROLL-НАВИГАЦИЯ
+   SCROLL-НАВИГАЦИЯ + ИНДИКАТОР СКРОЛЛА В HERO
    ======================================================================== */
 const navLinks = document.querySelectorAll('.nav-link');
 const observedSections = ['scenarios', 'cases', 'talk'].map(id => document.getElementById(id)).filter(Boolean);
@@ -32,6 +32,13 @@ const navObserver = new IntersectionObserver((entries) => {
   });
 }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
 observedSections.forEach(sec => navObserver.observe(sec));
+
+document.querySelectorAll('[data-scroll]').forEach(el => {
+  el.addEventListener('click', () => {
+    const target = document.getElementById(el.dataset.scroll);
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  });
+});
 
 /* ========================================================================
    ОБЩИЙ РЕНДЕРИНГ SVG-СХЕМЫ (прямоугольные узлы)
@@ -281,7 +288,6 @@ function renderProgress(id, ratio, c) {
   bars.forEach((b, i) => b.classList.toggle('played', i < activeCount));
 }
 
-/* Прогрессивное раскрытие транскрипта: строки всплывают по очереди по мере "воспроизведения" */
 function revealTranscript(id, progressSec, c) {
   const container = document.querySelector(`.transcript[data-id="${id}"]`);
   if (!container) return;
@@ -371,7 +377,7 @@ function resultColor(result) {
 }
 
 /* ========================================================================
-   СИМУЛЯТОР (раздел 03): выбор сценария / чат-подсказки / живая схема (pan/zoom)
+   СИМУЛЯТОР (раздел 03)
    ======================================================================== */
 let talkScenarioKey = null;
 let talkCurrentNodeId = null;
@@ -404,7 +410,7 @@ function startTalk(key) {
   document.getElementById('talk-status').textContent = 'Идёт диалог...';
   document.getElementById('talk-restart').disabled = false;
 
-  resetSchemeView();
+  if (window.resetSchemeView) window.resetSchemeView();
   renderLiveScheme();
   playRobotNode(talkCurrentNodeId);
 }
