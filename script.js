@@ -161,7 +161,7 @@ function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 renderScenarioList();
 
 /* ========================================================================
-   КЕЙСЫ (раздел 02): переключатель Аудио / Отчёт по обзвону
+   КЕЙСЫ (раздел 02): 3 вкладки — Аудио / Отчёт / Ценность
    ======================================================================== */
 document.querySelectorAll('#cases-view-toggle .view-toggle-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -169,8 +169,9 @@ document.querySelectorAll('#cases-view-toggle .view-toggle-btn').forEach(btn => 
     const view = btn.dataset.view;
     document.getElementById('cases-view-audio').style.display = view === 'audio' ? 'block' : 'none';
     document.getElementById('cases-view-campaign').style.display = view === 'campaign' ? 'block' : 'none';
+    document.getElementById('cases-view-value').style.display = view === 'value' ? 'block' : 'none';
     if (view === 'campaign') renderCampaign();
-    else stopAllPlayback();
+    if (view !== 'audio') stopAllPlayback();
   });
 });
 
